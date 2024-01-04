@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles/styles.css" />
+    <!-- <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    /> -->
+  </head>
+
+  <body>
+    <div class="p-6 flex flex-col gap-2">
+      <div class="flex justify-between align-middle">
+        <p>Scan QR code</p>
+        <button class="" id="closebutton">
+          <img src="/symbols/close.svg" />
+        </button>
+      </div>
+
+      <div class="p-6">
+        <div class="aspect-square bg-blue-400 rounded-2xl"></div>
+      </div>
+
+      <div class="relative">
+        <input
+          id="urlInputField"
+          type="text"
+          value="https://localhost"
+          class="w-[260px] pr-12 rounded border-0 ring-1 ring-gray-300 focus:ring-2 focus:ring-indigo-600"
+        />
+        <button class="absolute right-0 h-full px-2 bg-gray-200 rounded border-0 focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+          <img src="/symbols/copy.svg" />
+        </button>
+      </div>
+
+      <div class="pt-4 flex justify-between">
+        <button class="border rounded py-1 px-4 bg-gray-200 font-bold">Settings</button>
+        <button class="border rounded py-1 px-4 bg-gray-200 font-bold">Download</button>
+      </div>
+    </div>
+
+    <script>
+      browser.tabs.query({ currentWindow: true }).then(tabs => console.log(tabs));
+    </script>
+
+  </body>
+</html>
