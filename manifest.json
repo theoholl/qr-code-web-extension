@@ -1,0 +1,30 @@
+{
+  "manifest_version": 2,
+  "version": "0.1",
+
+  "name": "QR Code",
+  "description": "Generates a QR code for the current URL",
+  "homepage_url": "https://github.com/mdn/webextensions-examples/tree/main/beastify",
+
+  "icons": {
+    "36": "icons/icon-36.png",
+    "48": "icons/icon-48.png",
+    "72": "icons/icon-72.png",
+    "96": "icons/icon-96.png"
+  },
+
+  "permissions": ["activeTab"],
+
+  "browser_action": {
+    "default_icon": "icons/icon-36.png",
+    "default_title": "QR Code",
+    "default_popup": "popup.html"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["*://*.mozilla.org/*"],
+      "js": ["qr-code.js"]
+    }
+  ]
+}
