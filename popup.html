@@ -3,46 +3,56 @@
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="styles/styles.css" />
-    <!-- <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet"
-    /> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="qr.js"></script>
   </head>
 
   <body>
-    <div class="p-6 flex flex-col gap-2">
+    <div class="p-6 flex flex-col gap-4">
       <div class="flex justify-between align-middle">
-        <p>Scan QR code</p>
-        <button class="" id="closebutton">
+        <h1 class="text-xl">Scan QR code</h1>
+        <button class="" id="close-button">
           <img src="/symbols/close.svg" />
         </button>
       </div>
 
-      <div class="p-6">
-        <div class="aspect-square bg-blue-400 rounded-2xl"></div>
+      <div class="px-6">
+        <div
+          id="qr-code" 
+          class="grid place-content-center aspect-square border rounded-2xl"
+        ></div>
       </div>
 
       <div class="relative">
         <input
-          id="urlInputField"
+          id="url-input"
           type="text"
           value="https://localhost"
-          class="w-[260px] pr-12 rounded border-0 ring-1 ring-gray-300 focus:ring-2 focus:ring-indigo-600"
+          class="w-[280px] pr-12 py-2 rounded-lg border-0 ring-1 ring-gray-300 focus:ring-2 focus:ring-indigo-600"
         />
-        <button class="absolute right-0 h-full px-2 bg-gray-200 rounded border-0 focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+        <button 
+          id="copy-button"
+          class="absolute right-0 h-full px-3 rounded-r-lg border-0 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+        >
           <img src="/symbols/copy.svg" />
         </button>
       </div>
 
-      <div class="pt-4 flex justify-between">
-        <button class="border rounded py-1 px-4 bg-gray-200 font-bold">Settings</button>
-        <button class="border rounded py-1 px-4 bg-gray-200 font-bold">Download</button>
+      <div class="flex justify-end gap-2">
+        <select class="border-none rounded-md font-bold text-sm">
+          <option>PNG</option>
+          <option>SVG</option>
+          <option>PDF</option>
+        </select>
+        <button class="px-6 py-2 border rounded-lg shadow font-bold text-sm">
+          Download
+        </button>
       </div>
     </div>
 
-    <script>
-      browser.tabs.query({ currentWindow: true }).then(tabs => console.log(tabs));
-    </script>
+    <script src="popup.js"></script>
 
   </body>
 </html>

@@ -23,8 +23,8 @@
   
   "content_scripts": [
     {
-      "matches": ["*://*.mozilla.org/*"],
-      "js": ["qr-code.js"]
+      "matches": ["<all_urls>"],
+      "js": ["qr.js", "popup.js"]
     }
   ]
 }
