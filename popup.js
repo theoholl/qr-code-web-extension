@@ -5,6 +5,7 @@ function handleClickCloseWindowButton() {
 function handleClickCopyUrlButton() {
     const urlInput = document.getElementById("url-input");
     navigator.clipboard.writeText(urlInput.value);
+    temporarilyShowCheckMark();
 }
 
 async function getCurrentTabUrl() {
@@ -13,6 +14,18 @@ async function getCurrentTabUrl() {
     
     return url;
 }
+
+async function temporarilyShowCheckMark() {
+    const copyIcon = document.getElementById("copy-icon");
+    copyIcon.src = "symbols/done.svg";
+
+    await new Promise(() => setTimeout(
+        () => {
+            copyIcon.src = "symbols/copy.svg";
+        }, 1000)
+    );
+}
+
 
 function updateQrCode() {
     const urlInput = document.getElementById("url-input");
