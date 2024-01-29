@@ -18,7 +18,7 @@ function updateQrCode() {
     const urlInput = document.getElementById("url-input");
     const qrCode = document.getElementById("qr-code");
     const oldHtmlTable = document.getElementsByClassName("qrcode")[0];
-    const newhtmlTable = QRCode.generateHTML(urlInput.value);
+    const newhtmlTable = QRCode.generateSVG(urlInput.value);
     qrCode.replaceChild(newhtmlTable, oldHtmlTable);
 }
 
@@ -34,7 +34,7 @@ async function initialize() {
     urlInput.addEventListener("change", updateQrCode);
 
     const qrCode = document.getElementById("qr-code");
-    const htmlTable = QRCode.generateHTML(urlInput.value);
+    const htmlTable = QRCode.generateSVG(urlInput.value);
     qrCode.appendChild(htmlTable);
 }
 
