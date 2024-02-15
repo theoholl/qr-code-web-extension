@@ -3,9 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="styles/styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <script src="qr.js"></script>
     <style>
       svg {
@@ -25,7 +28,7 @@
 
       <div class="px-6">
         <div
-          id="qr-code" 
+          id="qr-code"
           class="grid place-content-center aspect-square border rounded-2xl"
         ></div>
       </div>
@@ -37,7 +40,7 @@
           value="https://localhost"
           class="w-[280px] pr-12 py-2 rounded-lg border-0 ring-1 ring-gray-300 focus:ring-2 text-slate-800"
         />
-        <button 
+        <button
           id="copy-button"
           class="absolute right-0 h-full px-3 rounded-r-lg border-0"
         >
@@ -46,17 +49,21 @@
       </div>
 
       <div class="flex justify-end gap-2">
-        <select class="border-none rounded-md font-bold text-sm text-slate-800">
-          <option>PNG</option>
-          <option>SVG</option>
+        <select 
+          id="format-select"
+        class="border-none rounded-md font-bold text-sm text-slate-800">
+          <option value="png">PNG</option>
+          <option value="svg">SVG</option>
         </select>
-        <button class="px-6 py-2 border rounded-lg shadow font-bold text-sm text-slate-800">
+        <button
+          id="download-button"
+          class="px-6 py-2 border rounded-lg shadow font-bold text-sm text-slate-800"
+        >
           Download
         </button>
       </div>
     </div>
 
     <script src="popup.js"></script>
-
   </body>
 </html>

@@ -36,6 +36,27 @@ function updateQrCode() {
     }
 }
 
+function downloadQrCode() {
+    const format = document.getElementById("format-select").value;
+
+    const urlInput = document.getElementById("url-input");
+    let dataUrl;
+
+    if (format === "png") {
+        dataUrl = QRCode.generatePNG(urlInput.value);
+    } else if (format === "svg") {
+        const newQrCode = QRCode.generateSVG(urlInput.value);
+        const svgString = new XMLSerializer().serializeToString(newQrCode);
+        const blob = new Blob([svgString], { type: "image/svg+xml" });
+        dataUrl = URL.createObjectURL(blob);
+    }
+
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = `qr-code.${format}`;
+    a.click();
+}
+
 async function initialize() {
     const closeButton = document.getElementById("close-button");
     closeButton.onclick = handleClickCloseWindowButton;
@@ -48,8 +69,11 @@ async function initialize() {
     urlInput.addEventListener("change", updateQrCode);
 
     const qrCode = document.getElementById("qr-code");
-    const htmlTable = QRCode.generateSVG(urlInput.value);
-    qrCode.appendChild(htmlTable);
+    const svgQrCode = QRCode.generateSVG(urlInput.value);
+    qrCode.appendChild(svgQrCode);
+
+    const downloadButton = document.getElementById("download-button");
+    downloadButton.onclick = downloadQrCode;
 }
 
 initialize();
