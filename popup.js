@@ -26,13 +26,14 @@ async function temporarilyShowCheckMark() {
     );
 }
 
-
 function updateQrCode() {
     const urlInput = document.getElementById("url-input");
-    const qrCode = document.getElementById("qr-code");
-    const oldHtmlTable = document.getElementsByClassName("qrcode")[0];
-    const newhtmlTable = QRCode.generateSVG(urlInput.value);
-    qrCode.replaceChild(newhtmlTable, oldHtmlTable);
+    const currentQrCode = document.getElementById("qr-code").firstElementChild;
+
+    if (currentQrCode !== null) {
+        const newQrCode = QRCode.generateSVG(urlInput.value);
+        currentQrCode.replaceWith(newQrCode);
+    }
 }
 
 async function initialize() {
