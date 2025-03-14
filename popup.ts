@@ -1,4 +1,4 @@
-import QRCode from "./qr-code-gen.js";
+import QRCode from "./qr.js";
 
 function handleClickCloseWindowButton() {
   window.close();
@@ -122,7 +122,7 @@ function generateSVG(data: string): SVGElement {
 
 function generatePNG(data: string) {
 		var matrix = QRCode.generate(data);
-		var modsize = 5;
+		var modsize = 10;
 		var margin = 4;
 		var n = matrix.length;
 		var size = modsize * (n + 2 * margin);
@@ -130,7 +130,7 @@ function generatePNG(data: string) {
 		var canvas = document.createElement('canvas'), context;
 		canvas.width = canvas.height = size;
 		context = canvas.getContext('2d');
-		if (!context) throw 'canvas support is needed for PNG output';
+		if (!context) throw 'Canvas support is required for PNG output';
 
 		context.fillStyle = '#fff';
 		context.fillRect(0, 0, size, size);

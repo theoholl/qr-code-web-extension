@@ -222,21 +222,7 @@ const QRCode = (() => {
 
   // Mode constants (cf. Table 2 in JIS X 0510:2004 p. 16)
   const MODE_TERMINATOR = 0;
-  const MODE_NUMERIC = 1;
-  const MODE_ALPHANUMERIC = 2;
   const MODE_OCTET = 4;
-  const MODE_KANJI = 8;
-
-  // Validation regexps
-  const NUMERIC_REGEXP = /^\d*$/;
-  const ALPHANUMERIC_REGEXP = /^[A-Za-z0-9 $%*+\-./:]*$/;
-  const ALPHANUMERIC_OUT_REGEXP = /^[A-Z0-9 $%*+\-./:]*$/;
-
-  // ECC levels (cf. Table 22 in JIS X 0510:2004 p. 45)
-  const ECCLEVEL_L = 1;
-  const ECCLEVEL_M = 0;
-  const ECCLEVEL_Q = 3;
-  const ECCLEVEL_H = 2;
 
   // GF(2^8)-to-integer mapping with a reducing polynomial x^8+x^4+x^3+x^2+1
   // Invariant: GF256_MAP[GF256_INVMAP[i]] == i for all i in [1,256)
@@ -362,155 +348,41 @@ const QRCode = (() => {
    * Returns the number of bits required for the length of data based on the version and mode.
    * The number of bits required varies depending on the version and mode.
    */
-  const nDataLenBits = (ver: number, mode: number) => {
-    switch (mode) {
-      case MODE_NUMERIC:
-        return ver < 10 ? 10 : ver < 27 ? 12 : 14;
-      case MODE_ALPHANUMERIC:
-        return ver < 10 ? 9 : ver < 27 ? 11 : 13;
-      case MODE_OCTET:
-        return ver < 10 ? 8 : 16;
-      case MODE_KANJI:
-        return ver < 10 ? 8 : ver < 27 ? 10 : 12;
-      default:
-        return 0;
-    }
-  };
+  const nDataLenBits = (ver: number) => (ver < 10 ? 8 : 16);
 
   /** Returns the maximum length of data possible in given configuration. */
-  const getMaxDataLength = (ver: number, mode: number, ecclevel: number) => {
-    const nbits = nDataBits(ver, ecclevel) - 4 - nDataLenBits(ver, mode); // 4 for mode bits
-    switch (mode) {
-      case MODE_NUMERIC:
-        return (
-          ((nbits / 10) | 0) * 3 + (nbits % 10 < 4 ? 0 : nbits % 10 < 7 ? 1 : 2)
-        );
-      case MODE_ALPHANUMERIC:
-        return ((nbits / 11) | 0) * 2 + (nbits % 11 < 6 ? 0 : 1);
-      case MODE_OCTET:
-        return (nbits / 8) | 0;
-      case MODE_KANJI:
-        return (nbits / 13) | 0;
-      default:
-        return 0; // TODO: Use type instead of numeric value
-    }
-  };
-
-  /**
-   * Checks if the given data can be encoded in given mode, and returns
-   * the converted data for further processing if possible. Otherwise
-   * returns null.
-   */
-  const validateData = (mode: number, data: string) => {
-    switch (mode) {
-      case MODE_NUMERIC:
-        if (!data.match(NUMERIC_REGEXP)) return null;
-        return data;
-
-      case MODE_ALPHANUMERIC:
-        if (!data.match(ALPHANUMERIC_REGEXP)) return null;
-        return data.toUpperCase();
-
-      case MODE_OCTET:
-        if (typeof data === "string") {
-          // encode as utf-8 string
-          const newdata = [];
-          for (let i = 0; i < data.length; ++i) {
-            const ch = data.codePointAt(i);
-            if (ch !== undefined && ch < 0x80) {
-              newdata.push(ch);
-            } else if (ch !== undefined && ch < 0x800) {
-              newdata.push(0xc0 | (ch >> 6), 0x80 | (ch & 0x3f));
-            } else if (ch !== undefined && ch < 0x10000) {
-              newdata.push(
-                0xe0 | (ch >> 12),
-                0x80 | ((ch >> 6) & 0x3f),
-                0x80 | (ch & 0x3f)
-              );
-            } else {
-              newdata.push(
-                0xf0 | (ch! >> 18),
-                0x80 | ((ch! >> 12) & 0x3f),
-                0x80 | ((ch! >> 6) & 0x3f),
-                0x80 | (ch! & 0x3f)
-              );
-            }
-          }
-          return newdata;
-        } else {
-          return data;
-        }
-    }
+  const getMaxDataLength = (ver: number, ecclevel: number) => {
+    const nbits = nDataBits(ver, ecclevel) - 4 - nDataLenBits(ver); // 4 for mode bits
+    return (nbits / 8) | 0;
   };
 
   /**
    * Returns the code words (sans ECC bits) for given data and configurations.
-   * Requires data to be preprocessed by validatedata. no length check is
+   * Requires data to be preprocessed by validatedata. No length check is
    * performed, and everything has to be checked before calling this function.
    */
-  const encode = (
-    ver: number,
-    mode: number,
-    data: string | number[],
-    maxbuflen: number
-  ) => {
-    const buf = [];
+  const encode = (ver: number, data: number[], maxbuflen: number) => {
+    const buffer = [];
     let bits = 0;
     let remaining = 8;
-    const datalen = data.length;
 
     // this function is intentionally no-op when n=0.
     const pack = (x: number, n: number) => {
       if (n >= remaining) {
-        buf.push(bits | (x >> (n -= remaining)));
-        while (n >= 8) buf.push((x >> (n -= 8)) & 255);
+        buffer.push(bits | (x >> (n -= remaining)));
+        while (n >= 8) buffer.push((x >> (n -= 8)) & 255);
         bits = 0;
         remaining = 8;
       }
       if (n > 0) bits |= (x & ((1 << n) - 1)) << (remaining -= n);
     };
 
-    const nlenbits = nDataLenBits(ver, mode);
-    pack(mode, 4);
-    pack(datalen, nlenbits);
+    const nlenbits = nDataLenBits(ver);
+    pack(MODE_OCTET, 4);
+    pack(data.length, nlenbits);
 
-    switch (mode) {
-      case MODE_NUMERIC: {
-        if (typeof data === "string") {
-          let i;
-          for (i = 2; i < datalen; i += 3) {
-            pack(parseInt(data.substring(i - 2, i + 1), 10), 10);
-          }
-          pack(parseInt(data.substring(i - 2), 10), [0, 4, 7][datalen % 3]);
-        }
-        break;
-      }
-
-      case MODE_ALPHANUMERIC: {
-        if (typeof data === "string") {
-          let i;
-          for (i = 1; i < datalen; i += 2) {
-            pack(
-              ALPHANUMERIC_MAP[data.charAt(i - 1)] * 45 +
-                ALPHANUMERIC_MAP[data.charAt(i)],
-              11
-            );
-          }
-          if (datalen % 2 == 1) {
-            pack(ALPHANUMERIC_MAP[data.charAt(i - 1)], 6);
-          }
-        }
-        break;
-      }
-
-      case MODE_OCTET: {
-        for (let i = 0; i < datalen; ++i) {
-          if (typeof data[i] === "number") {
-            pack(data[i] as number, 8);
-          }
-        }
-        break;
-      }
+    for (let i = 0; i < data.length; ++i) {
+      pack(data[i] as number, 8);
     }
 
     // Final bits. It is possible that adding terminator causes the buffer
@@ -518,13 +390,13 @@ const QRCode = (() => {
     // be valid as the truncated terminator mode bits and padding is
     // identical in appearance (cf. JIS X 0510:2004 sec 8.4.8).
     pack(MODE_TERMINATOR, 4);
-    if (remaining < 8) buf.push(bits);
+    if (remaining < 8) buffer.push(bits);
 
     // The padding to fill up the remaining space. We should not add any
     // words when the overflow already occurred.
-    while (buf.length + 1 < maxbuflen) buf.push(0xec, 0x11);
-    if (buf.length < maxbuflen) buf.push(0xec);
-    return buf;
+    while (buffer.length + 1 < maxbuflen) buffer.push(0xec, 0x11);
+    if (buffer.length < maxbuflen) buffer.push(0xec);
+    return buffer;
   };
 
   /**
@@ -683,7 +555,7 @@ const QRCode = (() => {
 
     // Alignment patterns
     if (!v) {
-      throw new Error("Invalid version");
+      throw "Invalid version";
     }
 
     const aligns = v[2];
@@ -828,9 +700,6 @@ const QRCode = (() => {
    * occurring from the original matrix. For example, it penalizes the patterns
    * which just look like the finder pattern which will confuse the decoder.
    * We choose the mask which results in the lowest score among 8 possible ones.
-   *
-   * Note: ZXing seems to use the same procedure and in many cases its choice
-   * agrees to ours, but sometimes it does not. Practically it doesn't matter.
    */
   const evaluatematrix = (matrix: number[][]) => {
     // N1+(k-5) points for each consecutive row of k same-colored modules,
@@ -862,7 +731,6 @@ const QRCode = (() => {
           groups[i - 4] == p &&
           (groups[i - 5] >= 4 * p || groups[i + 1] >= 4 * p)
         ) {
-          // this part differs from zxing...
           score += PENALTY_FINDERLIKE;
         }
       }
@@ -870,14 +738,14 @@ const QRCode = (() => {
     };
 
     const n = matrix.length;
-    let score = 0,
-      nblacks = 0;
+    let score = 0;
+    let nblacks = 0;
     for (let i = 0; i < n; ++i) {
       const row = matrix[i];
       let groups;
 
-      // evaluate the current row
-      groups = [0]; // the first empty group of white
+      // Evaluate the current row
+      groups = [0]; // The first empty group of white
       for (let j = 0; j < n; ) {
         let k;
         for (k = 0; j < n && row[j]; ++k) ++j;
@@ -887,7 +755,7 @@ const QRCode = (() => {
       }
       score += evaluategroup(groups);
 
-      // evaluate the current column
+      // Evaluate the current column
       groups = [0];
       for (let j = 0; j < n; ) {
         let k;
@@ -898,13 +766,13 @@ const QRCode = (() => {
       }
       score += evaluategroup(groups);
 
-      // check the 2x2 box and calculate the density
+      // Check the 2x2 box and calculate the density
       const nextrow = matrix[i + 1] || [];
       nblacks += row[0];
       for (let j = 1; j < n; ++j) {
         const p = row[j];
         nblacks += p;
-        // at least comparison with next row should be strict...
+        // At least comparison with next row should be strict...
         if (row[j - 1] == p && nextrow[j] === p && nextrow[j - 1] === p) {
           score += PENALTY_TWOBYTWO;
         }
@@ -919,117 +787,73 @@ const QRCode = (() => {
    * Returns the fully encoded QR code matrix which contains given data.
    * It also chooses the best mask automatically when mask is -1.
    */
-  const generate = (
-    data: string,
-    ver: number,
-    mode: number,
-    ecclevel: number,
-    mask: number
-  ) => {
+  const generate = (data: number[], ver: number, ecclevel: number) => {
     const v = VERSIONS[ver];
-    let buf = encode(ver, mode, data, nDataBits(ver, ecclevel) >> 3);
+    let buffer = encode(ver, data, nDataBits(ver, ecclevel) >> 3);
     if (!v) {
-      throw new Error("Invalid version");
+      throw "Invalid version";
     }
-    buf = augumentEccs(buf, v[1][ecclevel], GF256_GENPOLY[v[0][ecclevel]]);
+    buffer = augumentEccs(
+      buffer,
+      v[1][ecclevel],
+      GF256_GENPOLY[v[0][ecclevel]]
+    );
 
     const result = makeBaseMatrix(ver);
-    const matrix = result.matrix,
-      reserved = result.reserved;
-    fillInData(matrix, reserved, buf);
+    const matrix = result.matrix;
+    const reserved = result.reserved;
+    fillInData(matrix, reserved, buffer);
 
-    if (mask < 0) {
-      // find the best mask
-      maskData(matrix, reserved, 0);
-      fillFormatInfo(matrix, ecclevel, 0);
-      let bestmask = 0,
-        bestscore = evaluatematrix(matrix);
-      maskData(matrix, reserved, 0);
-      for (mask = 1; mask < 8; ++mask) {
-        maskData(matrix, reserved, mask);
-        fillFormatInfo(matrix, ecclevel, mask);
-        const score = evaluatematrix(matrix);
-        if (bestscore > score) {
-          bestscore = score;
-          bestmask = mask;
-        }
-        maskData(matrix, reserved, mask);
+    // Find the best mask
+    let mask = -1;
+    maskData(matrix, reserved, 0);
+    fillFormatInfo(matrix, ecclevel, 0);
+    let bestmask = 0;
+    let bestscore = evaluatematrix(matrix);
+    maskData(matrix, reserved, 0);
+    for (mask = 1; mask < 8; ++mask) {
+      maskData(matrix, reserved, mask);
+      fillFormatInfo(matrix, ecclevel, mask);
+      const score = evaluatematrix(matrix);
+      if (bestscore > score) {
+        bestscore = score;
+        bestmask = mask;
       }
-      mask = bestmask;
+      maskData(matrix, reserved, mask);
     }
+    mask = bestmask;
 
     maskData(matrix, reserved, mask);
     fillFormatInfo(matrix, ecclevel, mask);
     return matrix;
   };
 
-  type Options = {
-    modulesize?: number; // Size of each module in pixels, defaults to 5px
-    margin?: null; // Margin in modules, defaults to 4 and shouldn't be less
-    version: number; // Integer in range [1, 40], when omitted, the smalles possible value is chosen
-    mode?: "numeric" | "alphanumeric" | "octet";
-    ecclevel: "L" | "M" | "Q" | "H";
-    mask: number;
-  };
+  type ECCLEVELS = "M" | "L" | "H" | "Q";
 
   const QRCode = {
-    generate: (
-      data: string,
-      options: Options = { version: -1, mask: -1, ecclevel: "L" }
-    ) => {
-      const MODES = {
-        numeric: MODE_NUMERIC,
-        alphanumeric: MODE_ALPHANUMERIC,
-        octet: MODE_OCTET,
-      };
-
+    generate: (data: string, eccLevel: ECCLEVELS = "L") => {
       const ECCLEVELS = {
-        L: ECCLEVEL_L,
-        M: ECCLEVEL_M,
-        Q: ECCLEVEL_Q,
-        H: ECCLEVEL_H,
+        L: 1,
+        M: 0,
+        Q: 3,
+        H: 2,
       };
 
-      let ver = options.version;
-      const mask = options.mask;
-      const ecclevel = ECCLEVELS[options.ecclevel];
-      let mode = options.mode ? MODES[options.mode] : -1;
+      const ecclevel = ECCLEVELS[eccLevel];
+      const encoder = new TextEncoder();
+      const utf8Encoded = Array.from(encoder.encode(data));
 
-      // If no mode was defined, auto-select the mode
-      if (mode < 0) {
-        mode = MODE_OCTET; // Default to octet
-
-        if (typeof data === "string") {
-          if (data.match(NUMERIC_REGEXP)) {
-            mode = MODE_NUMERIC;
-          } else if (data.match(ALPHANUMERIC_OUT_REGEXP)) {
-            // Upper-case alphanumeric characters only
-            mode = MODE_ALPHANUMERIC;
-          }
+      let version = -1;
+      if (version < 0) {
+        for (version = 1; version <= 40; ++version) {
+          if (data.length <= getMaxDataLength(version, ecclevel)) break;
         }
-      }
-
-      const validated = validateData(mode, data);
-      if (validated === null || validated === undefined) {
-        throw "invalid data format";
-      }
-
-      data = validated as string;
-
-      if (ver < 0) {
-        for (ver = 1; ver <= 40; ++ver) {
-          if (data.length <= getMaxDataLength(ver, mode, ecclevel)) break;
-        }
-        if (ver > 40) throw "Input data is too large";
-      } else if (ver < 1 || ver > 40) {
+        if (version > 40) throw "Input data is too large";
+      } else if (version < 1 || version > 40) {
         throw "Invalid version";
       }
 
-      if (mask != -1 && (mask < 0 || mask > 8)) {
-        throw "Invalid mask";
-      }
-
-      return generate(data, ver, mode, ecclevel, mask ?? -1);
+      return generate(utf8Encoded, version, ecclevel);
     },
   };
 
