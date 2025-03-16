@@ -4,8 +4,8 @@
   "type": "module",
   "main": "qr-code.js",
   "scripts": {
-    "css": "npx @tailwindcss/cli -i ./styles/imports.css -o ./styles/styles.css --watch",
-    "build": "tsc --build"
+    "css": "npx @tailwindcss/cli -i ./styles/styles.css -o ./dist/styles.css",
+    "ts": "tsc --build"
   },
   "engines": {
     "node": ">=16.0.0"
