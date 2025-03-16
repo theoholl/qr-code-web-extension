@@ -9,7 +9,10 @@
     <div class="p-6 flex flex-col gap-4">
       <div class="flex justify-between items-start">
         <h1 class="text-xl text-slate-800">Scan QR code</h1>
-        <button class="hover:bg-gray-100 p-2 rounded-md" id="close-button">
+        <button 
+          class="hover:bg-gray-100 p-2 rounded-md focus-visible:ring-2 focus-visible:ring-blue-500" 
+          id="close-button"
+        >
           <img src="/symbols/close.svg" />
         </button>
       </div>
@@ -26,11 +29,11 @@
           id="url-input"
           type="text"
           value="https://localhost"
-          class="pr-12 py-2 rounded-lg border-0 ring-1 ring-gray-300 focus:ring-2 text-slate-800"
+          class="pr-12 py-2 rounded-lg border-0 ring-1 ring-gray-300 focus:ring-2 text-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500"
         />
         <button
           id="copy-button"
-          class="absolute right-0 h-full px-3 rounded-r-lg border-0"
+          class="absolute right-0 h-full px-3 rounded-r-lg border-0 focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <img id="copy-icon" src="/symbols/copy.svg" />
         </button>
@@ -39,14 +42,14 @@
       <div class="flex justify-end gap-2">
         <select
           id="format-select"
-          class="hover:bg-gray-100 border-none rounded-md font-semibold text-sm text-slate-800"
+          class="hover:bg-gray-100 border-none rounded-md font-semibold text-sm text-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <option value="png">PNG</option>
-          <option value="svg">SVG</option>
+          <option value="svg">SVG</option>txt
         </select>
         <button
           id="download-button"
-          class="px-6 py-2 hover:bg-gray-100 border border-gray-300 rounded-lg shadow-sm font-semibold text-sm text-slate-800"
+          class="px-6 py-2 hover:bg-gray-100 border border-gray-300 rounded-lg shadow-sm font-semibold text-sm text-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           Download
         </button>
