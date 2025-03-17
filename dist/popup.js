@@ -13,8 +13,7 @@ async function initialize() {
 }
 async function getCurrentTabUrl() {
     const tabs = await browser.tabs.query({ active: true });
-    const url = tabs[0].url ?? "";
-    return url;
+    return tabs[0].url ?? "";
 }
 async function displayQrCode() {
     const qrCodeContainer = document.getElementById("qr-code");
@@ -22,14 +21,27 @@ async function displayQrCode() {
     // Read URL from the input field instead of the tab so the user can
     // edit the QR code before scanning / downloading it.
     const urlInput = document.getElementById("url-input");
-    const newQrCode = generateSVG(urlInput.value);
-    newQrCode.classList.add("w-[200px]");
+    const url = urlInput.value;
+    let newQrCodeElement;
+    try {
+        newQrCodeElement = generateSVG(urlInput.value);
+        newQrCodeElement.classList.add("w-full");
+    }
+    catch (error) {
+        console.error("Error generating QR code", error);
+        newQrCodeElement = createErrorMessageElement("URL contains unsupported characters or is too long.");
+    }
     if (currentQrCode) {
-        currentQrCode.replaceWith(newQrCode);
+        currentQrCode.replaceWith(newQrCodeElement);
     }
     else {
-        qrCodeContainer.appendChild(newQrCode);
+        qrCodeContainer.appendChild(newQrCodeElement);
     }
+}
+function createErrorMessageElement(message) {
+    const errorElement = document.createElement("p");
+    errorElement.innerHTML = message;
+    return errorElement;
 }
 function generateSVG(data) {
     const matrix = QRCode.generate(data);
@@ -42,7 +54,7 @@ function generateSVG(data) {
     svgElement.setAttribute("style", "shape-rendering:crispEdges");
     const svg = [
         "<style scoped>.bg{fill:#FFF} .fg{fill:#000}</style>",
-        `<rect class="bg" x="0" y="0" width="${size}" height="${size}" />`
+        `<rect class="bg" x="0" y="0" width="${size}" height="${size}" />`,
     ];
     let yOffset = margin * moduleSize;
     for (let y = 0; y < n; ++y) {

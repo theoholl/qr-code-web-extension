@@ -7,45 +7,50 @@ async function initialize() {
 
   displayQrCode();
 
-  const closeButton = document.getElementById(
-    "close-button"
-  ) as HTMLButtonElement;
+  const closeButton = document.getElementById("close-button") as HTMLButtonElement;
   closeButton.onclick = handleClickCloseWindowButton;
 
-  const copyButton = document.getElementById(
-    "copy-button"
-  ) as HTMLButtonElement;
+  const copyButton = document.getElementById("copy-button") as HTMLButtonElement;
   copyButton.onclick = handleClickCopyUrlButton;
 
-  const downloadButton = document.getElementById(
-    "download-button"
-  ) as HTMLButtonElement;
+  const downloadButton = document.getElementById("download-button") as HTMLButtonElement;
   downloadButton.onclick = downloadQrCode;
 }
 
 async function getCurrentTabUrl() {
   const tabs = await browser.tabs.query({ active: true });
-  const url = tabs[0].url ?? "";
-
-  return url;
+  return tabs[0].url ?? "";
 }
 
 async function displayQrCode() {
   const qrCodeContainer = document.getElementById("qr-code") as HTMLDivElement;
   const currentQrCode = qrCodeContainer?.firstElementChild as SVGElement;
-  
+
   // Read URL from the input field instead of the tab so the user can
   // edit the QR code before scanning / downloading it.
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
-  const newQrCode = generateSVG(urlInput.value);
-  newQrCode.classList.add("w-[200px]");
+  const url = urlInput.value;
 
-  if (currentQrCode)
-  {
-    currentQrCode.replaceWith(newQrCode);
-  } else {
-    qrCodeContainer.appendChild(newQrCode);
+  let newQrCodeElement: HTMLElement | SVGElement;
+  try {
+    newQrCodeElement = generateSVG(urlInput.value);
+    newQrCodeElement.classList.add("w-full");
+  } catch (error) {
+    console.error("Error generating QR code", error);
+    newQrCodeElement = createErrorMessageElement("URL contains unsupported characters or is too long.");
   }
+
+    if (currentQrCode) {
+      currentQrCode.replaceWith(newQrCodeElement);
+    } else {
+      qrCodeContainer.appendChild(newQrCodeElement);
+    } 
+}
+
+function createErrorMessageElement(message: string): HTMLElement {
+  const errorElement = document.createElement("p");
+  errorElement.innerHTML = message;
+  return errorElement;
 }
 
 function generateSVG(data: string): SVGElement {
@@ -64,7 +69,7 @@ function generateSVG(data: string): SVGElement {
 
   const svg = [
     "<style scoped>.bg{fill:#FFF} .fg{fill:#000}</style>",
-    `<rect class="bg" x="0" y="0" width="${size}" height="${size}" />`
+    `<rect class="bg" x="0" y="0" width="${size}" height="${size}" />`,
   ];
 
   let yOffset = margin * moduleSize;

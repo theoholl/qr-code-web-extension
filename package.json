@@ -5,7 +5,8 @@
   "main": "qr-code.js",
   "scripts": {
     "css": "npx @tailwindcss/cli -i ./styles/styles.css -o ./dist/styles.css",
-    "ts": "tsc --build"
+    "ts": "tsc --build",
+    "build": "npm run ts && npm run css"
   },
   "engines": {
     "node": ">=16.0.0"

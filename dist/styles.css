@@ -205,8 +205,11 @@
   .h-full {
     height: 100%;
   }
-  .w-\[200px\] {
-    width: 200px;
+  .w-50 {
+    width: calc(var(--spacing) * 50);
+  }
+  .w-full {
+    width: 100%;
   }
   .flex-col {
     flex-direction: column;
@@ -220,6 +223,9 @@
   .justify-between {
     justify-content: space-between;
   }
+  .justify-center {
+    justify-content: center;
+  }
   .justify-end {
     justify-content: flex-end;
   }
@@ -228,6 +234,9 @@
   }
   .gap-4 {
     gap: calc(var(--spacing) * 4);
+  }
+  .overflow-clip {
+    overflow: clip;
   }
   .rounded-2xl {
     border-radius: var(--radius-2xl);
@@ -274,6 +283,9 @@
   }
   .pr-12 {
     padding-right: calc(var(--spacing) * 12);
+  }
+  .text-center {
+    text-align: center;
   }
   .text-sm {
     font-size: var(--text-sm);
