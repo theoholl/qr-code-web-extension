@@ -1,9 +1,10 @@
 import QRCode from "./qr.js";
 async function initialize() {
     const urlInput = document.getElementById("url-input");
-    urlInput.value = await getCurrentTabUrl();
-    urlInput.addEventListener("change", displayQrCode);
-    displayQrCode();
+    const tabUrl = await getCurrentTabUrl();
+    urlInput.value = tabUrl;
+    urlInput.addEventListener("change", handleInputChanged);
+    updateQrCode(tabUrl);
     const closeButton = document.getElementById("close-button");
     closeButton.onclick = handleClickCloseWindowButton;
     const copyButton = document.getElementById("copy-button");
@@ -15,16 +16,24 @@ async function getCurrentTabUrl() {
     const tabs = await browser.tabs.query({ active: true });
     return tabs[0].url ?? "";
 }
-async function displayQrCode() {
+async function handleInputChanged() {
+    const urlInput = document.getElementById("url-input");
+    const inputValue = urlInput.value;
+    if (!inputValue.trim()) {
+        // Reset input to original tab URL if input is empty
+        const tabUrl = await getCurrentTabUrl();
+        urlInput.value = tabUrl;
+    }
+    else {
+        updateQrCode(inputValue);
+    }
+}
+async function updateQrCode(url) {
     const qrCodeContainer = document.getElementById("qr-code");
     const currentQrCode = qrCodeContainer?.firstElementChild;
-    // Read URL from the input field instead of the tab so the user can
-    // edit the QR code before scanning / downloading it.
-    const urlInput = document.getElementById("url-input");
-    const url = urlInput.value;
     let newQrCodeElement;
     try {
-        newQrCodeElement = generateSVG(urlInput.value);
+        newQrCodeElement = generateSVG(url);
         newQrCodeElement.classList.add("w-full");
     }
     catch (error) {
