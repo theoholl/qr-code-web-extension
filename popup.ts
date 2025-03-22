@@ -27,8 +27,7 @@ async function handleInputChanged() {
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
   const inputValue = urlInput.value;
 
-  if (!inputValue.trim())
-  {
+  if (!inputValue.trim()) {
     // Reset input to original tab URL if input is empty
     const tabUrl = await getCurrentTabUrl();
     urlInput.value = tabUrl;
@@ -47,19 +46,21 @@ async function updateQrCode(url: string) {
     newQrCodeElement.classList.add("w-full");
   } catch (error) {
     console.error("Error generating QR code", error);
-    newQrCodeElement = createErrorMessageElement("URL contains unsupported characters or is too long.");
+    newQrCodeElement = createErrorMessageElement(
+      "URL contains unsupported characters or is too long."
+    );
   }
 
-    if (currentQrCode) {
-      currentQrCode.replaceWith(newQrCodeElement);
-    } else {
-      qrCodeContainer.appendChild(newQrCodeElement);
-    } 
+  if (currentQrCode) {
+    currentQrCode.replaceWith(newQrCodeElement);
+  } else {
+    qrCodeContainer.appendChild(newQrCodeElement);
+  }
 }
 
 function createErrorMessageElement(message: string): HTMLElement {
   const errorElement = document.createElement("p");
-  errorElement.innerHTML = message;
+  errorElement.textContent = message;
   return errorElement;
 }
 
@@ -70,10 +71,7 @@ function generateSVG(data: string): SVGElement {
   const margin = 4;
   const size = moduleSize * (n + 2 * margin);
 
-  const svgElement = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "svg"
-  );
+  const svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svgElement.setAttribute("viewBox", `0 0 ${size} ${size}`);
   svgElement.setAttribute("style", "shape-rendering:crispEdges");
 
@@ -156,8 +154,7 @@ async function temporarilyShowCheckMark() {
 }
 
 function downloadQrCode() {
-  const format = (document.getElementById("format-select") as HTMLSelectElement)
-    ?.value;
+  const format = (document.getElementById("format-select") as HTMLSelectElement)?.value;
 
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
   let dataUrl;
