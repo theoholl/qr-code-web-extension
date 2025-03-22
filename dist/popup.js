@@ -1,5 +1,7 @@
 import QRCode from "./qr.js";
 async function initialize() {
+    // Initialize the popup by setting the URL input, generating the QR code,
+    // and attaching event listeners to buttons.
     const urlInput = document.getElementById("url-input");
     const tabUrl = await getCurrentTabUrl();
     urlInput.value = tabUrl;
@@ -9,18 +11,20 @@ async function initialize() {
     closeButton.onclick = handleClickCloseWindowButton;
     const copyButton = document.getElementById("copy-button");
     copyButton.onclick = handleClickCopyUrlButton;
+    copyButton.setAttribute("aria-label", "Copy URL");
     const downloadButton = document.getElementById("download-button");
     downloadButton.onclick = downloadQrCode;
 }
 async function getCurrentTabUrl() {
+    // Retrieve the URL of the currently active browser tab.
     const tabs = await browser.tabs.query({ active: true });
     return tabs[0].url ?? "";
 }
 async function handleInputChanged() {
+    // Handle changes to the URL input field. If the input is empty, reset it to the current tab's URL.
     const urlInput = document.getElementById("url-input");
     const inputValue = urlInput.value;
     if (!inputValue.trim()) {
-        // Reset input to original tab URL if input is empty
         const tabUrl = await getCurrentTabUrl();
         urlInput.value = tabUrl;
         updateQrCode(tabUrl);
@@ -30,6 +34,7 @@ async function handleInputChanged() {
     }
 }
 async function updateQrCode(url) {
+    // Update the QR code displayed in the popup based on the provided URL.
     const qrCodeContainer = document.getElementById("qr-code");
     const currentQrCode = qrCodeContainer?.firstElementChild;
     let newQrCodeElement;
@@ -49,41 +54,49 @@ async function updateQrCode(url) {
     }
 }
 function createErrorMessageElement(message) {
+    // Create an error message element to display when QR code generation fails.
     const errorElement = document.createElement("p");
     errorElement.textContent = message;
     return errorElement;
 }
 function generateSVG(data) {
-    const matrix = QRCode.generate(data);
+    // Generate an SVG representation of the QR code for the given data.
+    const matrix = QRCode.generate(data); // Generate the QR code matrix.
     const n = matrix.length;
-    const moduleSize = 5;
-    const margin = 4;
-    const size = moduleSize * (n + 2 * margin);
-    const svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svgElement.setAttribute("viewBox", `0 0 ${size} ${size}`);
-    svgElement.setAttribute("style", "shape-rendering:crispEdges");
-    const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
-    styleElement.setAttribute("scoped", "");
+    const moduleSize = 5; // Size of each QR code module (block).
+    const margin = 4; // Margin around the QR code.
+    const size = moduleSize * (n + 2 * margin); // Total size of the SVG.
+    // Create the root SVG element.
+    const svgElement = createSvgElement("svg", {
+        viewBox: `0 0 ${size} ${size}`,
+        style: "shape-rendering:crispEdges",
+    });
+    // Add a style element for QR code colors.
+    const styleElement = createSvgElement("style", { scoped: "" });
     styleElement.textContent = ".bg{fill:#FFF} .fg{fill:#000}";
     svgElement.appendChild(styleElement);
-    const backgroundRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    backgroundRect.setAttribute("class", "bg");
-    backgroundRect.setAttribute("x", "0");
-    backgroundRect.setAttribute("y", "0");
-    backgroundRect.setAttribute("width", `${size}`);
-    backgroundRect.setAttribute("height", `${size}`);
+    // Add a white background rectangle.
+    const backgroundRect = createSvgElement("rect", {
+        class: "bg",
+        x: "0",
+        y: "0",
+        width: `${size}`,
+        height: `${size}`,
+    });
     svgElement.appendChild(backgroundRect);
+    // Add black rectangles for each "on" module in the QR code matrix.
     let yOffset = margin * moduleSize;
     for (let y = 0; y < n; ++y) {
         let xOffset = margin * moduleSize;
         for (let x = 0; x < n; ++x) {
             if (matrix[y][x]) {
-                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                rect.setAttribute("x", `${xOffset}`);
-                rect.setAttribute("y", `${yOffset}`);
-                rect.setAttribute("class", "fg");
-                rect.setAttribute("width", `${moduleSize}`);
-                rect.setAttribute("height", `${moduleSize}`);
+                const rect = createSvgElement("rect", {
+                    x: `${xOffset}`,
+                    y: `${yOffset}`,
+                    class: "fg",
+                    width: `${moduleSize}`,
+                    height: `${moduleSize}`,
+                });
                 svgElement.appendChild(rect);
             }
             xOffset += moduleSize;
@@ -92,21 +105,31 @@ function generateSVG(data) {
     }
     return svgElement;
 }
+function createSvgElement(tag, attributes) {
+    // Helper function to create an SVG element with the specified attributes.
+    const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [key, value] of Object.entries(attributes)) {
+        element.setAttribute(key, value);
+    }
+    return element;
+}
 function generatePNG(data) {
-    const matrix = QRCode.generate(data);
-    const moduleSize = 10;
-    const margin = 4;
+    // Generate a PNG representation of the QR code for the given data.
+    const matrix = QRCode.generate(data); // Generate the QR code matrix.
+    const moduleSize = 10; // Size of each QR code module (block).
+    const margin = 4; // Margin around the QR code.
     const n = matrix.length;
-    const size = moduleSize * (n + 2 * margin);
+    const size = moduleSize * (n + 2 * margin); // Total size of the canvas.
+    // Create a canvas element to draw the QR code.
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
     const context = canvas.getContext("2d");
     if (!context)
         throw "Canvas support is required for PNG output";
-    // White background
+    // Draw a white background.
     context.fillStyle = "#fff";
     context.fillRect(0, 0, size, size);
-    // Black foreground blocks
+    // Draw black rectangles for each "on" module in the QR code matrix.
     context.fillStyle = "#000";
     for (let i = 0; i < n; ++i) {
         for (let j = 0; j < n; ++j) {
@@ -115,17 +138,21 @@ function generatePNG(data) {
             }
         }
     }
+    // Return the QR code as a data URL.
     return canvas.toDataURL();
 }
 function handleClickCloseWindowButton() {
+    // Close the popup window when the close button is clicked.
     window.close();
 }
 function handleClickCopyUrlButton() {
+    // Copy the URL from the input field to the clipboard and show a temporary checkmark.
     const urlInput = document.getElementById("url-input");
     navigator.clipboard.writeText(urlInput.value);
     temporarilyShowCheckMark();
 }
 async function temporarilyShowCheckMark() {
+    // Temporarily replace the copy icon with a checkmark icon to indicate success.
     const copyIcon = document.getElementById("copy-icon");
     copyIcon.src = "symbols/done.svg";
     await new Promise(() => setTimeout(() => {
@@ -133,6 +160,7 @@ async function temporarilyShowCheckMark() {
     }, 1000));
 }
 function downloadQrCode() {
+    // Download the QR code in the selected format (PNG or SVG).
     const format = document.getElementById("format-select")?.value;
     const urlInput = document.getElementById("url-input");
     let dataUrl;
@@ -145,6 +173,7 @@ function downloadQrCode() {
         const blob = new Blob([svgString], { type: "image/svg+xml" });
         dataUrl = URL.createObjectURL(blob);
     }
+    // Create a temporary anchor element to trigger the download.
     const a = document.createElement("a");
     a.href = dataUrl ?? "";
     a.download = `qr-code.${format}`;
