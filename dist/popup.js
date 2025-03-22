@@ -62,22 +62,34 @@ function generateSVG(data) {
     const svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svgElement.setAttribute("viewBox", `0 0 ${size} ${size}`);
     svgElement.setAttribute("style", "shape-rendering:crispEdges");
-    const svg = [
-        "<style scoped>.bg{fill:#FFF} .fg{fill:#000}</style>",
-        `<rect class="bg" x="0" y="0" width="${size}" height="${size}" />`,
-    ];
+    const styleElement = document.createElementNS("http://www.w3.org/2000/svg", "style");
+    styleElement.setAttribute("scoped", "");
+    styleElement.textContent = ".bg{fill:#FFF} .fg{fill:#000}";
+    svgElement.appendChild(styleElement);
+    const backgroundRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    backgroundRect.setAttribute("class", "bg");
+    backgroundRect.setAttribute("x", "0");
+    backgroundRect.setAttribute("y", "0");
+    backgroundRect.setAttribute("width", `${size}`);
+    backgroundRect.setAttribute("height", `${size}`);
+    svgElement.appendChild(backgroundRect);
     let yOffset = margin * moduleSize;
     for (let y = 0; y < n; ++y) {
         let xOffset = margin * moduleSize;
         for (let x = 0; x < n; ++x) {
             if (matrix[y][x]) {
-                svg.push(`<rect x="${xOffset}" y="${yOffset}" class="fg" width="${moduleSize}" height="${moduleSize}" />`);
+                const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                rect.setAttribute("x", `${xOffset}`);
+                rect.setAttribute("y", `${yOffset}`);
+                rect.setAttribute("class", "fg");
+                rect.setAttribute("width", `${moduleSize}`);
+                rect.setAttribute("height", `${moduleSize}`);
+                svgElement.appendChild(rect);
             }
             xOffset += moduleSize;
         }
         yOffset += moduleSize;
     }
-    svgElement.innerHTML = svg.join("");
     return svgElement;
 }
 function generatePNG(data) {
