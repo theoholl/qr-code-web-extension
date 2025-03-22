@@ -1,3 +1,7 @@
 {
-    "deno.enablePaths": ["./test"]
+    "deno.enablePaths": ["./test"],
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    }
 }
