@@ -4,6 +4,12 @@
   "description": "Generates a QR code for the current URL",
   "manifest_version": 3,
 
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{a48c0575-bcf5-4ac9-b732-c8c859a4fb5c}"
+    }
+  },
+
   "icons": {
     "36": "icons/icon-36.png",
     "48": "icons/icon-48.png",
