@@ -31,6 +31,7 @@ async function handleInputChanged() {
     // Reset input to original tab URL if input is empty
     const tabUrl = await getCurrentTabUrl();
     urlInput.value = tabUrl;
+    updateQrCode(tabUrl);
   } else {
     updateQrCode(inputValue);
   }

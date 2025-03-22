@@ -23,6 +23,7 @@ async function handleInputChanged() {
         // Reset input to original tab URL if input is empty
         const tabUrl = await getCurrentTabUrl();
         urlInput.value = tabUrl;
+        updateQrCode(tabUrl);
     }
     else {
         updateQrCode(inputValue);
@@ -49,7 +50,7 @@ async function updateQrCode(url) {
 }
 function createErrorMessageElement(message) {
     const errorElement = document.createElement("p");
-    errorElement.innerHTML = message;
+    errorElement.textContent = message;
     return errorElement;
 }
 function generateSVG(data) {
@@ -120,8 +121,7 @@ async function temporarilyShowCheckMark() {
     }, 1000));
 }
 function downloadQrCode() {
-    const format = document.getElementById("format-select")
-        ?.value;
+    const format = document.getElementById("format-select")?.value;
     const urlInput = document.getElementById("url-input");
     let dataUrl;
     if (format === "png") {
