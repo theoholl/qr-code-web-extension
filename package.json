@@ -3,7 +3,7 @@
   "scripts": {
     "css": "npx @tailwindcss/cli -i ./styles/styles.css -o ./dist/styles.css",
     "ts": "tsc --build",
-    "build": "npm run ts && npm run css"
+    "build": "npm run ts && npm run css && web-ext build --overwrite-dest"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.0.14",
