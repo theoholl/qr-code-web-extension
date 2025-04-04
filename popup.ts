@@ -2,7 +2,7 @@ import QRCode from "./qr.js";
 
 async function initialize() {
   // Initialize the popup by setting the URL input, generating the QR code,
-  // and attaching event listeners to buttons.
+  // and attaching event listeners to the buttons.
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
   const tabUrl = await getCurrentTabUrl();
   urlInput.value = tabUrl;
@@ -51,9 +51,9 @@ async function updateQrCode(url: string) {
     newQrCodeElement = generateSVG(url);
     newQrCodeElement.classList.add("w-full");
   } catch (error) {
-    console.error("Error generating QR code", error);
+    console.error("Error generating QR code:", error);
     newQrCodeElement = createErrorMessageElement(
-      "URL contains unsupported characters or is too long."
+      "The URL contains unsupported characters or is too long."
     );
   }
 
