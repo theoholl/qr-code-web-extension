@@ -1,7 +1,7 @@
 import QRCode from "./qr.js";
 async function initialize() {
     // Initialize the popup by setting the URL input, generating the QR code,
-    // and attaching event listeners to buttons.
+    // and attaching event listeners to the buttons.
     const urlInput = document.getElementById("url-input");
     const tabUrl = await getCurrentTabUrl();
     urlInput.value = tabUrl;
@@ -43,8 +43,8 @@ async function updateQrCode(url) {
         newQrCodeElement.classList.add("w-full");
     }
     catch (error) {
-        console.error("Error generating QR code", error);
-        newQrCodeElement = createErrorMessageElement("URL contains unsupported characters or is too long.");
+        console.error("Error generating QR code:", error);
+        newQrCodeElement = createErrorMessageElement("The URL contains unsupported characters or is too long.");
     }
     if (currentQrCode) {
         currentQrCode.replaceWith(newQrCodeElement);
@@ -71,13 +71,9 @@ function generateSVG(data) {
         viewBox: `0 0 ${size} ${size}`,
         style: "shape-rendering:crispEdges",
     });
-    // Add a style element for QR code colors.
-    const styleElement = createSvgElement("style", { scoped: "" });
-    styleElement.textContent = ".bg{fill:#FFF} .fg{fill:#000}";
-    svgElement.appendChild(styleElement);
     // Add a white background rectangle.
     const backgroundRect = createSvgElement("rect", {
-        class: "bg",
+        class: "fill-white dark:fill-zinc-900",
         x: "0",
         y: "0",
         width: `${size}`,
@@ -93,7 +89,7 @@ function generateSVG(data) {
                 const rect = createSvgElement("rect", {
                     x: `${xOffset}`,
                     y: `${yOffset}`,
-                    class: "fg",
+                    class: "fill-black dark:fill-white",
                     width: `${moduleSize}`,
                     height: `${moduleSize}`,
                 });
@@ -153,10 +149,13 @@ function handleClickCopyUrlButton() {
 }
 async function temporarilyShowCheckMark() {
     // Temporarily replace the copy icon with a checkmark icon to indicate success.
-    const copyIcon = document.getElementById("copy-icon");
-    copyIcon.src = "symbols/done.svg";
+    const copySymbolContainer = document.getElementById("copy-symbol-container");
+    const doneSymbolContainer = document.getElementById("done-symbol-container");
+    copySymbolContainer.classList.toggle("hidden", true);
+    doneSymbolContainer.classList.toggle("hidden", false);
     await new Promise(() => setTimeout(() => {
-        copyIcon.src = "symbols/copy.svg";
+        copySymbolContainer.classList.toggle("hidden", false);
+        doneSymbolContainer.classList.toggle("hidden", true);
     }, 1000));
 }
 function downloadQrCode() {

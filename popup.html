@@ -10,10 +10,11 @@
       <div class="flex justify-between items-center">
         <h1 class="text-xl text-slate-800 dark:text-white ">Scan QR code</h1>
         <button 
-          class="hover:bg-gray-100 p-2 rounded-md focus-visible:ring-2 focus-visible:ring-blue-500" 
+          class="hover:bg-gray-100 dark:hover:bg-zinc-600 p-2 rounded-md focus-visible:ring-2 focus-visible:ring-blue-500" 
           id="close-button"
         >
-          <img src="/symbols/close.svg" />
+          <img class="dark:hidden" src="/symbols/close.svg" />
+          <img class="hidden dark:block" src="/symbols/dark-mode/close.svg" />
         </button>
       </div>
 
@@ -35,7 +36,14 @@
           id="copy-button"
           class="absolute right-0 h-full px-3 rounded-r-lg border-0 focus-visible:ring-2 focus-visible:ring-blue-500"
         >
-          <img id="copy-icon" src="/symbols/copy.svg" />
+          <div id="copy-symbol-container">
+            <img class="dark:hidden" id="copy-icon" src="/symbols/copy.svg" />
+          <img class="hidden dark:block" id="copy-icon" src="/symbols/dark-mode/copy.svg" />
+          </div>
+          <div id="done-symbol-container" class="hidden">
+            <img class="dark:hidden" id="done-icon" src="/symbols/done.svg" />
+            <img class="hidden dark:block" id="done-icon" src="/symbols/dark-mode/done.svg" />
+          </div>
         </button>
       </div>
 

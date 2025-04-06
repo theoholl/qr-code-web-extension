@@ -85,14 +85,9 @@ function generateSVG(data: string): SVGElement {
     style: "shape-rendering:crispEdges",
   });
 
-  // Add a style element for QR code colors.
-  const styleElement = createSvgElement("style", { scoped: "" });
-  styleElement.textContent = ".bg{fill:#FFF} .fg{fill:#000}";
-  svgElement.appendChild(styleElement);
-
   // Add a white background rectangle.
   const backgroundRect = createSvgElement("rect", {
-    class: "bg",
+    class: "fill-white dark:fill-zinc-900",
     x: "0",
     y: "0",
     width: `${size}`,
@@ -109,7 +104,7 @@ function generateSVG(data: string): SVGElement {
         const rect = createSvgElement("rect", {
           x: `${xOffset}`,
           y: `${yOffset}`,
-          class: "fg",
+          class: "fill-black dark:fill-white",
           width: `${moduleSize}`,
           height: `${moduleSize}`,
         });
@@ -183,12 +178,16 @@ function handleClickCopyUrlButton() {
 
 async function temporarilyShowCheckMark() {
   // Temporarily replace the copy icon with a checkmark icon to indicate success.
-  const copyIcon = document.getElementById("copy-icon") as HTMLImageElement;
-  copyIcon.src = "symbols/done.svg";
+  const copySymbolContainer = document.getElementById("copy-symbol-container") as HTMLImageElement;
+  const doneSymbolContainer = document.getElementById("done-symbol-container") as HTMLImageElement;
+
+  copySymbolContainer.classList.toggle("hidden", true);
+  doneSymbolContainer.classList.toggle("hidden", false);
 
   await new Promise(() =>
     setTimeout(() => {
-      copyIcon.src = "symbols/copy.svg";
+      copySymbolContainer.classList.toggle("hidden", false);
+      doneSymbolContainer.classList.toggle("hidden", true);
     }, 1000)
   );
 }
