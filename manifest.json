@@ -1,7 +1,7 @@
 {
   "name": "QR Code",
-  "version": "0.1",
-  "description": "Generates a QR code for the current URL",
+  "version": "1.0.0",
+  "description": "Generates a QR code for the active tab URL.",
   "manifest_version": 3,
 
   "browser_specific_settings": {
