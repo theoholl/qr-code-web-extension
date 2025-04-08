@@ -59,7 +59,7 @@ function createErrorMessageElement(message) {
     errorElement.textContent = message;
     return errorElement;
 }
-function generateSVG(data) {
+function generateSVG(data, forDownload = false) {
     // Generate an SVG representation of the QR code for the given data.
     const matrix = QRCode.generate(data); // Generate the QR code matrix.
     const n = matrix.length;
@@ -73,11 +73,11 @@ function generateSVG(data) {
     });
     // Add a white background rectangle.
     const backgroundRect = createSvgElement("rect", {
-        class: "fill-white dark:fill-zinc-900",
         x: "0",
         y: "0",
         width: `${size}`,
         height: `${size}`,
+        ...(forDownload ? { fill: "white" } : { class: "fill-white dark:fill-zinc-900" }),
     });
     svgElement.appendChild(backgroundRect);
     // Add black rectangles for each "on" module in the QR code matrix.
@@ -89,9 +89,9 @@ function generateSVG(data) {
                 const rect = createSvgElement("rect", {
                     x: `${xOffset}`,
                     y: `${yOffset}`,
-                    class: "fill-black dark:fill-white",
                     width: `${moduleSize}`,
                     height: `${moduleSize}`,
+                    ...(forDownload ? { fill: "black" } : { class: "fill-black dark:fill-white" }),
                 });
                 svgElement.appendChild(rect);
             }
@@ -167,7 +167,7 @@ function downloadQrCode() {
         dataUrl = generatePNG(urlInput.value);
     }
     else if (format === "svg") {
-        const newQrCode = generateSVG(urlInput.value);
+        const newQrCode = generateSVG(urlInput.value, true);
         const svgString = new XMLSerializer().serializeToString(newQrCode);
         const blob = new Blob([svgString], { type: "image/svg+xml" });
         dataUrl = URL.createObjectURL(blob);
