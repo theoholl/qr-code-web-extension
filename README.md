@@ -27,3 +27,12 @@ npm run build
 ```
 
 For more information on debugging the extension in your browser, visit: [https://extensionworkshop.com/documentation/develop/debugging/](https://extensionworkshop.com/documentation/develop/debugging/)
+
+## Testing
+
+To run the tests, you need to have Deno installed.
+
+```bash
+cd test/
+deno test --allow-read
+```
