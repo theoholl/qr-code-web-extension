@@ -1,8 +1,14 @@
 {
   "name": "QR Code",
-  "version": "0.1",
-  "description": "Generates a QR code for the current URL",
+  "version": "1.0.0",
+  "description": "Generates a QR code for the active tab URL.",
   "manifest_version": 3,
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{db77fdbe-3907-42a6-8239-88d7865e0012}"
+    }
+  },
 
   "icons": {
     "36": "icons/icon-36.png",
@@ -25,7 +31,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["qr.js", "popup.js"]
+      "js": ["./dist/qr.js", "./dist/popup.js"]
     }
   ]
 }

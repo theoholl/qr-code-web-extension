@@ -1,27 +1,16 @@
 {
-  "name": "qr-code-extension",
-  "version": "1.0.0",
   "type": "module",
-  "main": "qr-code.js",
   "scripts": {
     "css": "npx @tailwindcss/cli -i ./styles/styles.css -o ./dist/styles.css",
     "ts": "tsc --build",
-    "build": "npm run ts && npm run css"
+    "build": "npm run ts && npm run css && web-ext build --overwrite-dest"
   },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/qr-code-extension.git"
-  },
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
     "@tailwindcss/cli": "^4.0.14",
     "@tailwindcss/forms": "^0.5.7",
     "@types/firefox-webext-browser": "^120.0.4",
     "tailwindcss": "^4.0.14",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "web-ext": "^8.5.0"
   }
 }
