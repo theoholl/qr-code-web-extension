@@ -75,8 +75,8 @@ function generateSVG(data: string, forDownload: boolean = false): SVGElement {
   // Generate an SVG representation of the QR code for the given data.
   const matrix = QRCode.generate(data); // Generate the QR code matrix.
   const n = matrix.length;
-  const moduleSize = 5; // Size of each QR code module (block).
-  const margin = 4; // Margin around the QR code.
+  const moduleSize = 10; // Size of each QR code module (block).
+  const margin = 3; // Margin around the QR code.
   const size = moduleSize * (n + 2 * margin); // Total size of the SVG.
 
   // Create the root SVG element.
@@ -131,7 +131,7 @@ function generatePNG(data: string): string {
   // Generate a PNG representation of the QR code for the given data.
   const matrix = QRCode.generate(data); // Generate the QR code matrix.
   const moduleSize = 10; // Size of each QR code module (block).
-  const margin = 4; // Margin around the QR code.
+  const margin = 3; // Margin around the QR code.
   const n = matrix.length;
   const size = moduleSize * (n + 2 * margin); // Total size of the canvas.
 
