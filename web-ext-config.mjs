@@ -3,6 +3,7 @@ export default {
         // Directories
         'node_modules',
         'test',
+        'styles',
         
         // TypeScript files
         '*.ts',
