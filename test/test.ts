@@ -6,7 +6,7 @@ import {
   QRCodeReader,
 } from "npm:@zxing/library";
 import qr from "../qr.ts";
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 
 // Custom LuminanceSource that converts a boolean[][] into grayscale pixel data
 class BooleanLuminanceSource extends LuminanceSource {
@@ -20,9 +20,7 @@ class BooleanLuminanceSource extends LuminanceSource {
     for (let y = 0; y < this.getHeight(); y++) {
       for (let x = 0; x < this.getWidth(); x++) {
         // Map true to white (255) and false to black (0)
-        this.luminances[y * this.getWidth() + x] = booleanMatrix[y][x]
-          ? 255
-          : 0;
+        this.luminances[y * this.getWidth() + x] = booleanMatrix[y][x] ? 255 : 0;
       }
     }
   }
@@ -47,12 +45,7 @@ class BooleanLuminanceSource extends LuminanceSource {
     return false;
   }
 
-  override crop(
-    left: number,
-    top: number,
-    width: number,
-    height: number,
-  ): LuminanceSource {
+  override crop(left: number, top: number, width: number, height: number): LuminanceSource {
     throw new Error("Crop is not supported.");
   }
 
@@ -64,12 +57,20 @@ class BooleanLuminanceSource extends LuminanceSource {
   }
 
   invert(): LuminanceSource {
-    const invertedBooleanMatrix = this.booleanMatrix.map((row) =>
-      row.map((value) => !value)
-    );
+    const invertedBooleanMatrix = this.booleanMatrix.map((row) => row.map((value) => !value));
     return new BooleanLuminanceSource(invertedBooleanMatrix);
   }
 }
+
+Deno.test(function emptyString() {
+  const result = qr.generate("");
+  assertNotEquals(result, []);
+});
+
+Deno.test(function tooLongString() {
+  const randomString = "a".repeat(2954);
+  assertThrows(() => qr.generate(randomString));
+});
 
 Deno.test("Decode 'Hello, world!'", () => {
   const qrCodeBinary: number[][] = qr.generate("Hello, world!");
@@ -100,8 +101,8 @@ Deno.test("Decode 'Hello, world!'", () => {
 Deno.test("Decode 1000 random strings", () => {
   for (let i = 0; i < 1000; i++) {
     // Generate a random string
-    const randomString = Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15);
+    const randomString =
+      Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
     // Generate QR code from the random string
     const qrCodeBinary: number[][] = qr.generate(randomString);
@@ -121,16 +122,9 @@ Deno.test("Decode 1000 random strings", () => {
     const reader = new QRCodeReader();
     try {
       const result = reader.decode(binaryBitmap);
-      assertEquals(
-        result.getText(),
-        randomString,
-        `Failed to decode string: ${randomString}`,
-      );
+      assertEquals(result.getText(), randomString, `Failed to decode string: ${randomString}`);
     } catch (error) {
-      console.error(
-        `Failed to decode QR code for string: ${randomString}`,
-        error,
-      );
+      console.error(`Failed to decode QR code for string: ${randomString}`, error);
       throw error; // Re-throw the error to fail the test
     }
   }
@@ -138,9 +132,10 @@ Deno.test("Decode 1000 random strings", () => {
 
 Deno.test("Decode 100 simple URLs", async () => {
   const urls = await Deno.readTextFile("./simple-urls.txt");
-  const urlList = urls.split("\n").map((url) => url.trim()).filter((url) =>
-    url.length > 0
-  );
+  const urlList = urls
+    .split("\n")
+    .map((url) => url.trim())
+    .filter((url) => url.length > 0);
 
   for (const url of urlList) {
     // Generate QR code from the URL
