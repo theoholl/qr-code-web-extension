@@ -76,8 +76,7 @@ function generateSVG(data: string, forDownload: boolean = false): SVGElement {
   const matrix = QRCode.generate(data); // Generate the QR code matrix.
   const n = matrix.length;
   const moduleSize = 10; // Size of each QR code module (block).
-  const margin = 3; // Margin around the QR code.
-  const size = moduleSize * (n + 2 * margin); // Total size of the SVG.
+  const size = moduleSize * (n + 2); // Total size of the SVG.
 
   // Create the root SVG element.
   const svgElement = createSvgElement("svg", {
@@ -96,9 +95,9 @@ function generateSVG(data: string, forDownload: boolean = false): SVGElement {
   svgElement.appendChild(backgroundRect);
 
   // Add black rectangles for each "on" module in the QR code matrix.
-  let yOffset = margin * moduleSize;
+  let yOffset = moduleSize;
   for (let y = 0; y < n; ++y) {
-    let xOffset = margin * moduleSize;
+    let xOffset = moduleSize;
     for (let x = 0; x < n; ++x) {
       if (matrix[y][x]) {
         const rect = createSvgElement("rect", {
