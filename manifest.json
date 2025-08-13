@@ -26,12 +26,5 @@
     },
     "default_title": "QR Code",
     "default_popup": "popup.html"
-  },
-
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["./dist/qr.js", "./dist/popup.js"]
-    }
-  ]
+  }
 }
