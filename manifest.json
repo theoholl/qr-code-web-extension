@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Generates a QR code for the active tab URL.",
   "manifest_version": 3,
 
