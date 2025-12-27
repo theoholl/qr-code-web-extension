@@ -39,9 +39,10 @@ async function updateQrCode(url) {
     const currentQrCode = qrCodeContainer?.firstElementChild;
     let newQrCodeElement;
     try {
+        const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
         const img = document.createElement("img");
         img.alt = "QR code";
-        img.src = generatePNG(url);
+        img.src = generatePNG(url, isDarkMode);
         img.classList.add("w-full");
         newQrCodeElement = img;
     }
@@ -111,8 +112,7 @@ function createSvgElement(tag, attributes) {
     }
     return element;
 }
-function generatePNG(data) {
-    const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+function generatePNG(data, isDarkMode) {
     const moduleColor = isDarkMode ? "#fff" : "#000";
     const backgroundColor = isDarkMode ? "#18181b" : "#fff";
     const clampRadius = (r, moduleSize) => Math.max(0, Math.min(r, moduleSize / 2));
@@ -221,7 +221,7 @@ function downloadQrCode() {
     const urlInput = document.getElementById("url-input");
     let dataUrl;
     if (format === "png") {
-        dataUrl = generatePNG(urlInput.value);
+        dataUrl = generatePNG(urlInput.value, false);
     }
     else if (format === "svg") {
         const newQrCode = generateSVG(urlInput.value, true);
