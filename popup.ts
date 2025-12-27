@@ -142,25 +142,31 @@ function generatePNG(data: string): string {
     y: number,
     width: number,
     height: number,
-    radii: { tl: number; tr: number; br: number; bl: number }
+    radii: { topLeft: number; topRight: number; bottomRight: number; bottomLeft: number }
   ) => {
-    const { tl, tr, br, bl } = radii;
+    const {
+      topLeft: topLeftRadius,
+      topRight: topRightRadius,
+      bottomRight: bottomRightRadius,
+      bottomLeft: bottomLeftRadius,
+    } = radii;
     ctx.beginPath();
-    ctx.moveTo(x + tl, y);
-    ctx.lineTo(x + width - tr, y);
-    if (tr > 0) ctx.quadraticCurveTo(x + width, y, x + width, y + tr);
+    ctx.moveTo(x + topLeftRadius, y);
+    ctx.lineTo(x + width - topRightRadius, y);
+    if (topRightRadius > 0) ctx.quadraticCurveTo(x + width, y, x + width, y + topRightRadius);
     else ctx.lineTo(x + width, y);
 
-    ctx.lineTo(x + width, y + height - br);
-    if (br > 0) ctx.quadraticCurveTo(x + width, y + height, x + width - br, y + height);
+    ctx.lineTo(x + width, y + height - bottomRightRadius);
+    if (bottomRightRadius > 0)
+      ctx.quadraticCurveTo(x + width, y + height, x + width - bottomRightRadius, y + height);
     else ctx.lineTo(x + width, y + height);
 
-    ctx.lineTo(x + bl, y + height);
-    if (bl > 0) ctx.quadraticCurveTo(x, y + height, x, y + height - bl);
+    ctx.lineTo(x + bottomLeftRadius, y + height);
+    if (bottomLeftRadius > 0) ctx.quadraticCurveTo(x, y + height, x, y + height - bottomLeftRadius);
     else ctx.lineTo(x, y + height);
 
-    ctx.lineTo(x, y + tl);
-    if (tl > 0) ctx.quadraticCurveTo(x, y, x + tl, y);
+    ctx.lineTo(x, y + topLeftRadius);
+    if (topLeftRadius > 0) ctx.quadraticCurveTo(x, y, x + topLeftRadius, y);
     else ctx.lineTo(x, y);
 
     ctx.closePath();
@@ -213,7 +219,12 @@ function generatePNG(data: string): string {
       const py = moduleSize * (padding + y);
 
       if (tl || tr || bl || br) {
-        drawRoundedRect(context, px, py, moduleSize, moduleSize, { tl, tr, br, bl });
+        drawRoundedRect(context, px, py, moduleSize, moduleSize, {
+          topLeft: tl,
+          topRight: tr,
+          bottomRight: br,
+          bottomLeft: bl,
+        });
       } else {
         context.fillRect(px, py, moduleSize, moduleSize);
       }
