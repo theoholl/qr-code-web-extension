@@ -6,7 +6,8 @@ async function initialize() {
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
   const tabUrl = await getCurrentTabUrl();
   urlInput.value = tabUrl;
-  urlInput.addEventListener("change", handleInputChanged);
+  urlInput.addEventListener("input", handleInputUpdated);
+  urlInput.addEventListener("blur", handleInputBlur);
 
   updateQrCode(tabUrl);
 
@@ -27,31 +28,41 @@ async function getCurrentTabUrl() {
   return tabs[0].url ?? "";
 }
 
-async function handleInputChanged() {
-  // Handle changes to the URL input field. If the input is empty, reset it to the current tab's URL.
+function handleInputUpdated() {
+  // Update the QR code on each input change.
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
-  const inputValue = urlInput.value;
+  updateQrCode(urlInput.value);
+}
 
-  if (!inputValue.trim()) {
-    const tabUrl = await getCurrentTabUrl();
-    urlInput.value = tabUrl;
-    updateQrCode(tabUrl);
-  } else {
-    updateQrCode(inputValue);
-  }
+async function handleInputBlur() {
+  // If the user leaves the field empty, reset it to the current tab's URL.
+  const urlInput = document.getElementById("url-input") as HTMLInputElement;
+  if (urlInput.value.trim()) return;
+
+  const tabUrl = await getCurrentTabUrl();
+  urlInput.value = tabUrl;
+  updateQrCode(tabUrl);
 }
 
 async function updateQrCode(url: string) {
   // Update the QR code displayed in the popup based on the provided URL.
   const qrCodeContainer = document.getElementById("qr-code") as HTMLDivElement;
+  const trimmedUrl = url.trim();
+
+  // Hide any output when the field is empty.
+  if (!trimmedUrl) {
+    qrCodeContainer.replaceChildren();
+    return;
+  }
+
   const currentQrCode = qrCodeContainer?.firstElementChild as Element | null;
+  const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
 
   let newQrCodeElement: HTMLElement;
   try {
-    const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
     const img = document.createElement("img");
     img.alt = "QR code";
-    img.src = generatePNG(url, isDarkMode);
+    img.src = generatePNG(trimmedUrl, isDarkMode);
     img.classList.add("w-full");
     newQrCodeElement = img;
   } catch (error) {
@@ -268,12 +279,14 @@ function downloadQrCode() {
   const format = (document.getElementById("format-select") as HTMLSelectElement)?.value;
 
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
+  const trimmedUrl = urlInput.value.trim();
+  if (!trimmedUrl) return;
   let dataUrl;
 
   if (format === "png") {
-    dataUrl = generatePNG(urlInput.value, false);
+    dataUrl = generatePNG(trimmedUrl, false);
   } else if (format === "svg") {
-    const newQrCode = generateSVG(urlInput.value, true);
+    const newQrCode = generateSVG(trimmedUrl, true);
     const svgString = new XMLSerializer().serializeToString(newQrCode);
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     dataUrl = URL.createObjectURL(blob);
