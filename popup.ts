@@ -44,12 +44,15 @@ async function handleInputChanged() {
 async function updateQrCode(url: string) {
   // Update the QR code displayed in the popup based on the provided URL.
   const qrCodeContainer = document.getElementById("qr-code") as HTMLDivElement;
-  const currentQrCode = qrCodeContainer?.firstElementChild as SVGElement;
+  const currentQrCode = qrCodeContainer?.firstElementChild as Element | null;
 
-  let newQrCodeElement: HTMLElement | SVGElement;
+  let newQrCodeElement: HTMLElement;
   try {
-    newQrCodeElement = generateSVG(url);
-    newQrCodeElement.classList.add("w-full");
+    const img = document.createElement("img");
+    img.alt = "QR code";
+    img.src = generatePNG(url);
+    img.classList.add("w-full");
+    newQrCodeElement = img;
   } catch (error) {
     console.error("Error generating QR code:", error);
     newQrCodeElement = createErrorMessageElement(
@@ -127,40 +130,98 @@ function createSvgElement(tag: string, attributes: Record<string, string>): SVGE
 }
 
 function generatePNG(data: string): string {
+  const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+  const moduleColor = isDarkMode ? "#fff" : "#000";
+  const backgroundColor = isDarkMode ? "#18181b" : "#fff";
+
+  const clampRadius = (r: number, moduleSize: number) => Math.max(0, Math.min(r, moduleSize / 2));
+
+  const drawRoundedRect = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radii: { tl: number; tr: number; br: number; bl: number }
+  ) => {
+    const { tl, tr, br, bl } = radii;
+    ctx.beginPath();
+    ctx.moveTo(x + tl, y);
+    ctx.lineTo(x + width - tr, y);
+    if (tr > 0) ctx.quadraticCurveTo(x + width, y, x + width, y + tr);
+    else ctx.lineTo(x + width, y);
+
+    ctx.lineTo(x + width, y + height - br);
+    if (br > 0) ctx.quadraticCurveTo(x + width, y + height, x + width - br, y + height);
+    else ctx.lineTo(x + width, y + height);
+
+    ctx.lineTo(x + bl, y + height);
+    if (bl > 0) ctx.quadraticCurveTo(x, y + height, x, y + height - bl);
+    else ctx.lineTo(x, y + height);
+
+    ctx.lineTo(x, y + tl);
+    if (tl > 0) ctx.quadraticCurveTo(x, y, x + tl, y);
+    else ctx.lineTo(x, y);
+
+    ctx.closePath();
+    ctx.fill();
+  };
+
   // Generate a PNG representation of the QR code for the given data.
-  const matrix = QRCode.generate(data); // Generate the QR code matrix.
+  const modulesMatrix = QRCode.generate(data); // Generate the QR code matrix.
   const moduleSize = 10; // Size of each QR code module (block).
-  const margin = 3; // Margin around the QR code.
-  const n = matrix.length;
-  const size = moduleSize * (n + 2 * margin); // Total size of the canvas.
+  const padding = 3; // Padding around the QR code.
+  const matrixSideLength = modulesMatrix.length;
+
+  const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+
+  // Total matrix size: size of a module * number of modules + padding on both sides.
+  const matrixSize = moduleSize * (matrixSideLength + 2 * padding); // Total size of the canvas.
 
   // Create a canvas element to draw the QR code.
   const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
+  canvas.width = canvas.height = matrixSize * dpr;
   const context = canvas.getContext("2d");
   if (!context) throw "Canvas support is required for PNG output";
 
-  // Draw a white background.
-  context.fillStyle = "#fff";
-  context.fillRect(0, 0, size, size);
+  // Draw in CSS pixel coordinates, scaled to device pixels.
+  context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  // Draw black rectangles for each "on" module in the QR code matrix.
-  context.fillStyle = "#000";
-  for (let i = 0; i < n; ++i) {
-    for (let j = 0; j < n; ++j) {
-      if (matrix[i][j]) {
-        context.fillRect(
-          moduleSize * (margin + j),
-          moduleSize * (margin + i),
-          moduleSize,
-          moduleSize
-        );
+  // Draw a background.
+  context.fillStyle = backgroundColor;
+  context.fillRect(0, 0, matrixSize, matrixSize);
+
+  // Draw modules for the QR code matrix.
+  context.fillStyle = moduleColor;
+  const isOn = (y: number, x: number) =>
+    y >= 0 && x >= 0 && y < matrixSideLength && x < matrixSideLength && modulesMatrix[y][x];
+
+  const baseRadius = clampRadius(Math.round(moduleSize * 0.45), moduleSize);
+
+  for (let y = 0; y < matrixSideLength; ++y) {
+    for (let x = 0; x < matrixSideLength; ++x) {
+      if (!modulesMatrix[y][x]) continue;
+
+      // Round corners that are exposed along the two orthogonal edges.
+      // Diagonal neighbors do not block rounding.
+      const tl = !isOn(y - 1, x) && !isOn(y, x - 1) ? baseRadius : 0;
+      const tr = !isOn(y - 1, x) && !isOn(y, x + 1) ? baseRadius : 0;
+      const bl = !isOn(y + 1, x) && !isOn(y, x - 1) ? baseRadius : 0;
+      const br = !isOn(y + 1, x) && !isOn(y, x + 1) ? baseRadius : 0;
+
+      const px = moduleSize * (padding + x);
+      const py = moduleSize * (padding + y);
+
+      if (tl || tr || bl || br) {
+        drawRoundedRect(context, px, py, moduleSize, moduleSize, { tl, tr, br, bl });
+      } else {
+        context.fillRect(px, py, moduleSize, moduleSize);
       }
     }
   }
 
   // Return the QR code as a data URL.
-  return canvas.toDataURL();
+  return canvas.toDataURL("image/png");
 }
 
 function handleClickCloseWindowButton() {
