@@ -11,20 +11,28 @@
   },
 
   "icons": {
-    "36": "icons/icon-36.png",
-    "48": "icons/icon-48.png",
-    "72": "icons/icon-72.png",
-    "96": "icons/icon-96.png"
+    "36": "icons/icon-36-dark.png",
+    "48": "icons/icon-48-dark.png",
+    "72": "icons/icon-72-dark.png",
+    "96": "icons/icon-96-dark.png"
   },
 
   "permissions": ["activeTab"],
 
   "action": {
     "default_icon": {
-      "36": "icons/icon-36.png",
-      "48": "icons/icon-48.png"
+      "36": "icons/icon-36-dark.png",
+      "48": "icons/icon-48-dark.png",
+      "72": "icons/icon-72-dark.png",
+      "96": "icons/icon-96-dark.png"
     },
     "default_title": "QR Code",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "theme_icons": [
+      { "light": "icons/icon-36-dark.png", "dark": "icons/icon-36-light.png", "size": 36 },
+      { "light": "icons/icon-48-dark.png", "dark": "icons/icon-48-light.png", "size": 48 },
+      { "light": "icons/icon-72-dark.png", "dark": "icons/icon-72-light.png", "size": 72 },
+      { "light": "icons/icon-96-dark.png", "dark": "icons/icon-96-light.png", "size": 96 }
+    ]
   }
 }
