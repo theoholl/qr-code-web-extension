@@ -62,7 +62,7 @@ async function updateQrCode(url: string) {
   try {
     const img = document.createElement("img");
     img.alt = "QR code";
-    img.src = generatePNG(trimmedUrl, isDarkMode);
+    img.src = generatePNG(trimmedUrl, "transparent", isDarkMode ? "#fff" : "#27272a", true);
     img.classList.add("w-full");
     newQrCodeElement = img;
   } catch (error) {
@@ -86,7 +86,7 @@ function createErrorMessageElement(message: string): HTMLElement {
   return errorElement;
 }
 
-function generateSVG(data: string, forDownload: boolean = false): SVGElement {
+function generateSVG(data: string): SVGElement {
   // Generate an SVG representation of the QR code for the given data.
   const matrix = QRCode.generate(data); // Generate the QR code matrix.
   const n = matrix.length;
@@ -105,7 +105,7 @@ function generateSVG(data: string, forDownload: boolean = false): SVGElement {
     y: "0",
     width: `${size}`,
     height: `${size}`,
-    ...(forDownload ? { fill: "white" } : { class: "fill-white dark:fill-zinc-900" }),
+    fill: "white",
   });
   svgElement.appendChild(backgroundRect);
 
@@ -120,7 +120,7 @@ function generateSVG(data: string, forDownload: boolean = false): SVGElement {
           y: `${yOffset}`,
           width: `${moduleSize}`,
           height: `${moduleSize}`,
-          ...(forDownload ? { fill: "black" } : { class: "fill-black dark:fill-white" }),
+          fill: "black",
         });
         svgElement.appendChild(rect);
       }
@@ -141,55 +141,19 @@ function createSvgElement(tag: string, attributes: Record<string, string>): SVGE
   return element;
 }
 
-function generatePNG(data: string, isDarkMode: boolean): string {
-  const moduleColor = isDarkMode ? "#fff" : "#000";
-  const backgroundColor = isDarkMode ? "#18181b" : "#fff";
-
-  const clampRadius = (r: number, moduleSize: number) => Math.max(0, Math.min(r, moduleSize / 2));
-
-  const drawRoundedRect = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    radii: { topLeft: number; topRight: number; bottomRight: number; bottomLeft: number }
-  ) => {
-    const {
-      topLeft: topLeftRadius,
-      topRight: topRightRadius,
-      bottomRight: bottomRightRadius,
-      bottomLeft: bottomLeftRadius,
-    } = radii;
-    ctx.beginPath();
-    ctx.moveTo(x + topLeftRadius, y);
-    ctx.lineTo(x + width - topRightRadius, y);
-    if (topRightRadius > 0) ctx.quadraticCurveTo(x + width, y, x + width, y + topRightRadius);
-    else ctx.lineTo(x + width, y);
-
-    ctx.lineTo(x + width, y + height - bottomRightRadius);
-    if (bottomRightRadius > 0)
-      ctx.quadraticCurveTo(x + width, y + height, x + width - bottomRightRadius, y + height);
-    else ctx.lineTo(x + width, y + height);
-
-    ctx.lineTo(x + bottomLeftRadius, y + height);
-    if (bottomLeftRadius > 0) ctx.quadraticCurveTo(x, y + height, x, y + height - bottomLeftRadius);
-    else ctx.lineTo(x, y + height);
-
-    ctx.lineTo(x, y + topLeftRadius);
-    if (topLeftRadius > 0) ctx.quadraticCurveTo(x, y, x + topLeftRadius, y);
-    else ctx.lineTo(x, y);
-
-    ctx.closePath();
-    ctx.fill();
-  };
-
+function generatePNG(
+  data: string,
+  backgroundColor: string,
+  qrModuleColor: string,
+  withRoundedCorners: boolean
+): string {
   // Generate a PNG representation of the QR code for the given data.
   const modulesMatrix = QRCode.generate(data); // Generate the QR code matrix.
   const moduleSize = 10; // Size of each QR code module (block).
   const padding = 3; // Padding around the QR code.
   const matrixSideLength = modulesMatrix.length;
 
+  // Ratio of the resolution in physical pixels to the resolution in CSS pixels used for scaling the image
   const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
 
   // Total matrix size: size of a module * number of modules + padding on both sides.
@@ -209,18 +173,61 @@ function generatePNG(data: string, isDarkMode: boolean): string {
   context.fillRect(0, 0, matrixSize, matrixSize);
 
   // Draw modules for the QR code matrix.
-  context.fillStyle = moduleColor;
+  context.fillStyle = qrModuleColor;
   const isOn = (y: number, x: number) =>
     y >= 0 && x >= 0 && y < matrixSideLength && x < matrixSideLength && modulesMatrix[y][x];
 
-  const baseRadius = clampRadius(Math.round(moduleSize * 0.45), moduleSize);
+  // Clamp radius to be between 0 and half the module size.
+  const clampRadius = (r: number, moduleSize: number) => Math.max(0, Math.min(r, moduleSize / 2));
+
+  // Base radius for rounded corners.
+  const baseRadius = withRoundedCorners
+    ? clampRadius(Math.round(moduleSize * 0.45), moduleSize)
+    : 0;
+
+  const drawRoundedRect = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radii: { topLeft: number; topRight: number; bottomRight: number; bottomLeft: number }
+  ) => {
+    // Start to draw a path, begin in the top-left corner.
+    ctx.beginPath();
+    ctx.moveTo(x + radii.topLeft, y);
+
+    // Move to the top-right corner.
+    ctx.lineTo(x + width - radii.topRight, y);
+    if (radii.topRight > 0) ctx.quadraticCurveTo(x + width, y, x + width, y + radii.topRight);
+    else ctx.lineTo(x + width, y);
+
+    // Move to the bottom-right corner.
+    ctx.lineTo(x + width, y + height - radii.bottomRight);
+    if (radii.bottomRight > 0)
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radii.bottomRight, y + height);
+    else ctx.lineTo(x + width, y + height);
+
+    // Move to the bottom-left corner.
+    ctx.lineTo(x + radii.bottomLeft, y + height);
+    if (radii.bottomLeft > 0) ctx.quadraticCurveTo(x, y + height, x, y + height - radii.bottomLeft);
+    else ctx.lineTo(x, y + height);
+
+    // Move to the top-left corner to close the rectangle.
+    ctx.lineTo(x, y + radii.topLeft);
+    if (radii.topLeft > 0) ctx.quadraticCurveTo(x, y, x + radii.topLeft, y);
+    else ctx.lineTo(x, y);
+
+    // Close the path and fill the rectangle.
+    ctx.closePath();
+    ctx.fill();
+  };
 
   for (let y = 0; y < matrixSideLength; ++y) {
     for (let x = 0; x < matrixSideLength; ++x) {
       if (!modulesMatrix[y][x]) continue;
 
       // Round corners that are exposed along the two orthogonal edges.
-      // Diagonal neighbors do not block rounding.
       const tl = !isOn(y - 1, x) && !isOn(y, x - 1) ? baseRadius : 0;
       const tr = !isOn(y - 1, x) && !isOn(y, x + 1) ? baseRadius : 0;
       const bl = !isOn(y + 1, x) && !isOn(y, x - 1) ? baseRadius : 0;
@@ -230,6 +237,7 @@ function generatePNG(data: string, isDarkMode: boolean): string {
       const py = moduleSize * (padding + y);
 
       if (tl || tr || bl || br) {
+        // Draw rectangle with rounded corners
         drawRoundedRect(context, px, py, moduleSize, moduleSize, {
           topLeft: tl,
           topRight: tr,
@@ -237,6 +245,7 @@ function generatePNG(data: string, isDarkMode: boolean): string {
           bottomLeft: bl,
         });
       } else {
+        // Draw rectangle without rounded corners
         context.fillRect(px, py, moduleSize, moduleSize);
       }
     }
@@ -284,9 +293,9 @@ function downloadQrCode() {
   let dataUrl;
 
   if (format === "png") {
-    dataUrl = generatePNG(trimmedUrl, false);
+    dataUrl = generatePNG(trimmedUrl, "#fff", "#000", false);
   } else if (format === "svg") {
-    const newQrCode = generateSVG(trimmedUrl, true);
+    const newQrCode = generateSVG(trimmedUrl);
     const svgString = new XMLSerializer().serializeToString(newQrCode);
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     dataUrl = URL.createObjectURL(blob);
