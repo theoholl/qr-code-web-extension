@@ -5,7 +5,8 @@ async function initialize() {
     const urlInput = document.getElementById("url-input");
     const tabUrl = await getCurrentTabUrl();
     urlInput.value = tabUrl;
-    urlInput.addEventListener("change", handleInputChanged);
+    urlInput.addEventListener("input", handleInputUpdated);
+    urlInput.addEventListener("blur", handleInputBlur);
     updateQrCode(tabUrl);
     const closeButton = document.getElementById("close-button");
     closeButton.onclick = handleClickCloseWindowButton;
@@ -20,29 +21,36 @@ async function getCurrentTabUrl() {
     const tabs = await browser.tabs.query({ active: true });
     return tabs[0].url ?? "";
 }
-async function handleInputChanged() {
-    // Handle changes to the URL input field. If the input is empty, reset it to the current tab's URL.
+function handleInputUpdated() {
+    // Update the QR code on each input change.
     const urlInput = document.getElementById("url-input");
-    const inputValue = urlInput.value;
-    if (!inputValue.trim()) {
-        const tabUrl = await getCurrentTabUrl();
-        urlInput.value = tabUrl;
-        updateQrCode(tabUrl);
-    }
-    else {
-        updateQrCode(inputValue);
-    }
+    updateQrCode(urlInput.value);
+}
+async function handleInputBlur() {
+    // If the user leaves the field empty, reset it to the current tab's URL.
+    const urlInput = document.getElementById("url-input");
+    if (urlInput.value.trim())
+        return;
+    const tabUrl = await getCurrentTabUrl();
+    urlInput.value = tabUrl;
+    updateQrCode(tabUrl);
 }
 async function updateQrCode(url) {
     // Update the QR code displayed in the popup based on the provided URL.
     const qrCodeContainer = document.getElementById("qr-code");
+    const trimmedUrl = url.trim();
+    // Hide any output when the field is empty.
+    if (!trimmedUrl) {
+        qrCodeContainer.replaceChildren();
+        return;
+    }
     const currentQrCode = qrCodeContainer?.firstElementChild;
+    const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
     let newQrCodeElement;
     try {
-        const isDarkMode = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
         const img = document.createElement("img");
         img.alt = "QR code";
-        img.src = generatePNG(url, isDarkMode);
+        img.src = generatePNG(trimmedUrl, "transparent", isDarkMode ? "#fff" : "#27272a", true);
         img.classList.add("w-full");
         newQrCodeElement = img;
     }
@@ -63,7 +71,7 @@ function createErrorMessageElement(message) {
     errorElement.textContent = message;
     return errorElement;
 }
-function generateSVG(data, forDownload = false) {
+function generateSVG(data) {
     // Generate an SVG representation of the QR code for the given data.
     const matrix = QRCode.generate(data); // Generate the QR code matrix.
     const n = matrix.length;
@@ -80,7 +88,7 @@ function generateSVG(data, forDownload = false) {
         y: "0",
         width: `${size}`,
         height: `${size}`,
-        ...(forDownload ? { fill: "white" } : { class: "fill-white dark:fill-zinc-900" }),
+        fill: "white",
     });
     svgElement.appendChild(backgroundRect);
     // Add black rectangles for each "on" module in the QR code matrix.
@@ -94,7 +102,7 @@ function generateSVG(data, forDownload = false) {
                     y: `${yOffset}`,
                     width: `${moduleSize}`,
                     height: `${moduleSize}`,
-                    ...(forDownload ? { fill: "black" } : { class: "fill-black dark:fill-white" }),
+                    fill: "black",
                 });
                 svgElement.appendChild(rect);
             }
@@ -112,42 +120,13 @@ function createSvgElement(tag, attributes) {
     }
     return element;
 }
-function generatePNG(data, isDarkMode) {
-    const moduleColor = isDarkMode ? "#fff" : "#000";
-    const backgroundColor = isDarkMode ? "#18181b" : "#fff";
-    const clampRadius = (r, moduleSize) => Math.max(0, Math.min(r, moduleSize / 2));
-    const drawRoundedRect = (ctx, x, y, width, height, radii) => {
-        const { topLeft: topLeftRadius, topRight: topRightRadius, bottomRight: bottomRightRadius, bottomLeft: bottomLeftRadius, } = radii;
-        ctx.beginPath();
-        ctx.moveTo(x + topLeftRadius, y);
-        ctx.lineTo(x + width - topRightRadius, y);
-        if (topRightRadius > 0)
-            ctx.quadraticCurveTo(x + width, y, x + width, y + topRightRadius);
-        else
-            ctx.lineTo(x + width, y);
-        ctx.lineTo(x + width, y + height - bottomRightRadius);
-        if (bottomRightRadius > 0)
-            ctx.quadraticCurveTo(x + width, y + height, x + width - bottomRightRadius, y + height);
-        else
-            ctx.lineTo(x + width, y + height);
-        ctx.lineTo(x + bottomLeftRadius, y + height);
-        if (bottomLeftRadius > 0)
-            ctx.quadraticCurveTo(x, y + height, x, y + height - bottomLeftRadius);
-        else
-            ctx.lineTo(x, y + height);
-        ctx.lineTo(x, y + topLeftRadius);
-        if (topLeftRadius > 0)
-            ctx.quadraticCurveTo(x, y, x + topLeftRadius, y);
-        else
-            ctx.lineTo(x, y);
-        ctx.closePath();
-        ctx.fill();
-    };
+function generatePNG(data, backgroundColor, qrModuleColor, withRoundedCorners) {
     // Generate a PNG representation of the QR code for the given data.
     const modulesMatrix = QRCode.generate(data); // Generate the QR code matrix.
     const moduleSize = 10; // Size of each QR code module (block).
     const padding = 3; // Padding around the QR code.
     const matrixSideLength = modulesMatrix.length;
+    // Ratio of the resolution in physical pixels to the resolution in CSS pixels used for scaling the image
     const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
     // Total matrix size: size of a module * number of modules + padding on both sides.
     const matrixSize = moduleSize * (matrixSideLength + 2 * padding); // Total size of the canvas.
@@ -163,15 +142,51 @@ function generatePNG(data, isDarkMode) {
     context.fillStyle = backgroundColor;
     context.fillRect(0, 0, matrixSize, matrixSize);
     // Draw modules for the QR code matrix.
-    context.fillStyle = moduleColor;
+    context.fillStyle = qrModuleColor;
     const isOn = (y, x) => y >= 0 && x >= 0 && y < matrixSideLength && x < matrixSideLength && modulesMatrix[y][x];
-    const baseRadius = clampRadius(Math.round(moduleSize * 0.45), moduleSize);
+    // Clamp radius to be between 0 and half the module size.
+    const clampRadius = (r, moduleSize) => Math.max(0, Math.min(r, moduleSize / 2));
+    // Base radius for rounded corners.
+    const baseRadius = withRoundedCorners
+        ? clampRadius(Math.round(moduleSize * 0.45), moduleSize)
+        : 0;
+    const drawRoundedRect = (ctx, x, y, width, height, radii) => {
+        // Start to draw a path, begin in the top-left corner.
+        ctx.beginPath();
+        ctx.moveTo(x + radii.topLeft, y);
+        // Move to the top-right corner.
+        ctx.lineTo(x + width - radii.topRight, y);
+        if (radii.topRight > 0)
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radii.topRight);
+        else
+            ctx.lineTo(x + width, y);
+        // Move to the bottom-right corner.
+        ctx.lineTo(x + width, y + height - radii.bottomRight);
+        if (radii.bottomRight > 0)
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radii.bottomRight, y + height);
+        else
+            ctx.lineTo(x + width, y + height);
+        // Move to the bottom-left corner.
+        ctx.lineTo(x + radii.bottomLeft, y + height);
+        if (radii.bottomLeft > 0)
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radii.bottomLeft);
+        else
+            ctx.lineTo(x, y + height);
+        // Move to the top-left corner to close the rectangle.
+        ctx.lineTo(x, y + radii.topLeft);
+        if (radii.topLeft > 0)
+            ctx.quadraticCurveTo(x, y, x + radii.topLeft, y);
+        else
+            ctx.lineTo(x, y);
+        // Close the path and fill the rectangle.
+        ctx.closePath();
+        ctx.fill();
+    };
     for (let y = 0; y < matrixSideLength; ++y) {
         for (let x = 0; x < matrixSideLength; ++x) {
             if (!modulesMatrix[y][x])
                 continue;
             // Round corners that are exposed along the two orthogonal edges.
-            // Diagonal neighbors do not block rounding.
             const tl = !isOn(y - 1, x) && !isOn(y, x - 1) ? baseRadius : 0;
             const tr = !isOn(y - 1, x) && !isOn(y, x + 1) ? baseRadius : 0;
             const bl = !isOn(y + 1, x) && !isOn(y, x - 1) ? baseRadius : 0;
@@ -179,6 +194,7 @@ function generatePNG(data, isDarkMode) {
             const px = moduleSize * (padding + x);
             const py = moduleSize * (padding + y);
             if (tl || tr || bl || br) {
+                // Draw rectangle with rounded corners
                 drawRoundedRect(context, px, py, moduleSize, moduleSize, {
                     topLeft: tl,
                     topRight: tr,
@@ -187,6 +203,7 @@ function generatePNG(data, isDarkMode) {
                 });
             }
             else {
+                // Draw rectangle without rounded corners
                 context.fillRect(px, py, moduleSize, moduleSize);
             }
         }
@@ -219,12 +236,15 @@ function downloadQrCode() {
     // Download the QR code in the selected format (PNG or SVG).
     const format = document.getElementById("format-select")?.value;
     const urlInput = document.getElementById("url-input");
+    const trimmedUrl = urlInput.value.trim();
+    if (!trimmedUrl)
+        return;
     let dataUrl;
     if (format === "png") {
-        dataUrl = generatePNG(urlInput.value, false);
+        dataUrl = generatePNG(trimmedUrl, "#fff", "#000", false);
     }
     else if (format === "svg") {
-        const newQrCode = generateSVG(urlInput.value, true);
+        const newQrCode = generateSVG(trimmedUrl);
         const svgString = new XMLSerializer().serializeToString(newQrCode);
         const blob = new Blob([svgString], { type: "image/svg+xml" });
         dataUrl = URL.createObjectURL(blob);
