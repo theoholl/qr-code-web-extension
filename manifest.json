@@ -4,6 +4,9 @@
   "description": "Generates a QR code for the active tab URL.",
   "manifest_version": 3,
 
+  "author": "Theo H.",
+  "homepage_url": "https://github.com/theoholl/qr-code-web-extension",
+
   "browser_specific_settings": {
     "gecko": {
       "id": "{db77fdbe-3907-42a6-8239-88d7865e0012}",
