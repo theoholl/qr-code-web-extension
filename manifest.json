@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Generates a QR code for the active tab URL.",
   "manifest_version": 3,
 
@@ -35,10 +35,10 @@
     "default_title": "QR Code",
     "default_popup": "popup.html",
     "theme_icons": [
-      { "light": "icons/icon-36-dark.png", "dark": "icons/icon-36-light.png", "size": 36 },
-      { "light": "icons/icon-48-dark.png", "dark": "icons/icon-48-light.png", "size": 48 },
-      { "light": "icons/icon-72-dark.png", "dark": "icons/icon-72-light.png", "size": 72 },
-      { "light": "icons/icon-96-dark.png", "dark": "icons/icon-96-light.png", "size": 96 }
+      { "light": "icons/icon-36-light.png", "dark": "icons/icon-36-dark.png", "size": 36 },
+      { "light": "icons/icon-48-light.png", "dark": "icons/icon-48-dark.png", "size": 48 },
+      { "light": "icons/icon-72-light.png", "dark": "icons/icon-72-dark.png", "size": 72 },
+      { "light": "icons/icon-96-light.png", "dark": "icons/icon-96-dark.png", "size": 96 }
     ]
   }
 }
