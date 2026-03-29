@@ -3,6 +3,7 @@
     "target": "ESNext",
     "module": "NodeNext",
     "lib": ["DOM", "ESNext"],
+    "types": ["firefox-webext-browser"],
     "moduleResolution": "node16",
     "esModuleInterop": true,
     "resolveJsonModule": true,
