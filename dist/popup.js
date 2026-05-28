@@ -18,7 +18,7 @@ async function initialize() {
 }
 async function getCurrentTabUrl() {
     // Retrieve the URL of the currently active browser tab.
-    const tabs = await browser.tabs.query({ active: true });
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
     return tabs[0].url ?? "";
 }
 function handleInputUpdated() {
