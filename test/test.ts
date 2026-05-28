@@ -4,7 +4,7 @@ import {
   HybridBinarizer,
   LuminanceSource,
   QRCodeReader,
-} from "npm:@zxing/library";
+} from "@zxing/library";
 import qr from "../qr.ts";
 import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
 
@@ -45,7 +45,7 @@ class BooleanLuminanceSource extends LuminanceSource {
     return false;
   }
 
-  override crop(left: number, top: number, width: number, height: number): LuminanceSource {
+  override crop(_left: number, _top: number, _width: number, _height: number): LuminanceSource {
     throw new Error("Crop is not supported.");
   }
 
@@ -73,11 +73,7 @@ Deno.test(function tooLongString() {
 });
 
 Deno.test(function invalidEccLevel() {
-  assertThrows(
-    () => qr.generate("test", "X" as "L"),
-    Error,
-    "Invalid ECC level"
-  );
+  assertThrows(() => qr.generate("test", "X" as "L"), Error, "Invalid ECC level");
 });
 
 Deno.test(function unicodeStringAtByteLimit() {
@@ -91,11 +87,7 @@ Deno.test(function unicodeStringAtByteLimit() {
 Deno.test(function unicodeStringTooLongByByteLength() {
   const unicodeString = "😀".repeat(739);
 
-  assertThrows(
-    () => qr.generate(unicodeString),
-    Error,
-    "Input data is too large"
-  );
+  assertThrows(() => qr.generate(unicodeString), Error, "Input data is too large");
 });
 
 Deno.test("Decode 'Hello, world!'", () => {
@@ -104,7 +96,7 @@ Deno.test("Decode 'Hello, world!'", () => {
   // Convert binary number array (0, 1) to boolean array.
   // Map 0 (white) to true (white) and 1 (black) to false (black)
   const qrCodeAsBooleanArray: boolean[][] = qrCodeBinary.map((row) =>
-    row.map((pixel) => pixel === 0)
+    row.map((pixel) => pixel === 0),
   );
 
   // Use the custom LuminanceSource to wrap the boolean array
@@ -135,7 +127,7 @@ Deno.test("Decode 1000 random strings", () => {
 
     // Convert binary number array (0, 1) to boolean array
     const qrCodeAsBooleanArray: boolean[][] = qrCodeBinary.map((row) =>
-      row.map((pixel) => pixel === 0)
+      row.map((pixel) => pixel === 0),
     );
 
     // Use the custom LuminanceSource to wrap the boolean array
@@ -169,7 +161,7 @@ Deno.test("Decode 100 simple URLs", async () => {
 
     // Convert binary number array (0, 1) to boolean array
     const qrCodeAsBooleanArray: boolean[][] = qrCodeBinary.map((row) =>
-      row.map((pixel) => pixel === 0)
+      row.map((pixel) => pixel === 0),
     );
 
     // Use the custom LuminanceSource to wrap the boolean array
@@ -209,7 +201,7 @@ Deno.test("Decode complex URLs", () => {
 
     // Convert binary number array (0, 1) to boolean array
     const qrCodeAsBooleanArray: boolean[][] = qrCodeBinary.map((row) =>
-      row.map((pixel) => pixel === 0)
+      row.map((pixel) => pixel === 0),
     );
 
     // Use the custom LuminanceSource to wrap the boolean array
@@ -249,7 +241,7 @@ Deno.test("Encode and decode unicode characters", () => {
 
     // Convert binary number array (0, 1) to boolean array
     const qrCodeAsBooleanArray: boolean[][] = qrCodeBinary.map((row) =>
-      row.map((pixel) => pixel === 0)
+      row.map((pixel) => pixel === 0),
     );
 
     // Use the custom LuminanceSource to wrap the boolean array
@@ -290,7 +282,7 @@ Deno.test("Decode URLs with Unicode characters", () => {
 
     // Convert binary number array (0, 1) to boolean array
     const qrCodeAsBooleanArray: boolean[][] = qrCodeBinary.map((row) =>
-      row.map((pixel) => pixel === 0)
+      row.map((pixel) => pixel === 0),
     );
 
     // Use the custom LuminanceSource to wrap the boolean array
