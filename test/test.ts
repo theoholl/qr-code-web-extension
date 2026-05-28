@@ -72,6 +72,32 @@ Deno.test(function tooLongString() {
   assertThrows(() => qr.generate(randomString));
 });
 
+Deno.test(function invalidEccLevel() {
+  assertThrows(
+    () => qr.generate("test", "X" as "L"),
+    Error,
+    "Invalid ECC level"
+  );
+});
+
+Deno.test(function unicodeStringAtByteLimit() {
+  const unicodeString = "😀".repeat(738);
+
+  const result = qr.generate(unicodeString);
+
+  assertNotEquals(result, []);
+});
+
+Deno.test(function unicodeStringTooLongByByteLength() {
+  const unicodeString = "😀".repeat(739);
+
+  assertThrows(
+    () => qr.generate(unicodeString),
+    Error,
+    "Input data is too large"
+  );
+});
+
 Deno.test("Decode 'Hello, world!'", () => {
   const qrCodeBinary: number[][] = qr.generate("Hello, world!");
 
