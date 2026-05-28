@@ -24,7 +24,7 @@ async function initialize() {
 
 async function getCurrentTabUrl() {
   // Retrieve the URL of the currently active browser tab.
-  const tabs = await browser.tabs.query({ active: true });
+  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   return tabs[0].url ?? "";
 }
 
@@ -68,7 +68,7 @@ async function updateQrCode(url: string) {
   } catch (error) {
     console.error("Error generating QR code:", error);
     newQrCodeElement = createErrorMessageElement(
-      "The URL contains unsupported characters or is too long."
+      "The URL contains unsupported characters or is too long.",
     );
   }
 
@@ -145,7 +145,7 @@ function generatePNG(
   data: string,
   backgroundColor: string,
   qrModuleColor: string,
-  withRoundedCorners: boolean
+  withRoundedCorners: boolean,
 ): string {
   // Generate a PNG representation of the QR code for the given data.
   const modulesMatrix = QRCode.generate(data); // Generate the QR code matrix.
@@ -191,7 +191,7 @@ function generatePNG(
     y: number,
     width: number,
     height: number,
-    radii: { topLeft: number; topRight: number; bottomRight: number; bottomLeft: number }
+    radii: { topLeft: number; topRight: number; bottomRight: number; bottomLeft: number },
   ) => {
     // Start to draw a path, begin in the top-left corner.
     ctx.beginPath();
@@ -279,7 +279,7 @@ async function temporarilyShowCheckMark() {
     setTimeout(() => {
       copySymbolContainer.classList.toggle("hidden", false);
       doneSymbolContainer.classList.toggle("hidden", true);
-    }, 1000)
+    }, 1000),
   );
 }
 
