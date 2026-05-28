@@ -1,27 +1,30 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
-    "jsr:@std/assert@^1.0.11": "1.0.11",
-    "jsr:@std/internal@^1.0.5": "1.0.5",
-    "npm:@zxing/library@*": "0.21.3"
+    "jsr:@std/assert@^1.0.19": "1.0.19",
+    "jsr:@std/internal@^1.0.12": "1.0.14",
+    "npm:@zxing/library@*": "0.21.3",
+    "npm:@zxing/library@0.21.3": "0.21.3"
   },
   "jsr": {
-    "@std/assert@1.0.11": {
-      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1",
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
       "dependencies": [
         "jsr:@std/internal"
       ]
     },
-    "@std/internal@1.0.5": {
-      "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
     }
   },
   "npm": {
     "@zxing/library@0.21.3": {
       "integrity": "sha512-hZHqFe2JyH/ZxviJZosZjV+2s6EDSY0O24R+FQmlWZBZXP9IqMo7S3nb3+2LBWxodJQkSurdQGnqE7KXqrYgow==",
       "dependencies": [
-        "@zxing/text-encoding",
         "ts-custom-error"
+      ],
+      "optionalDependencies": [
+        "@zxing/text-encoding"
       ]
     },
     "@zxing/text-encoding@0.9.0": {
@@ -33,7 +36,8 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/assert@^1.0.11"
+      "jsr:@std/assert@^1.0.19",
+      "npm:@zxing/library@0.21.3"
     ]
   }
 }
