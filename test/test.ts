@@ -227,10 +227,16 @@ Deno.test("Decode complex URLs", () => {
 Deno.test("Encode and decode unicode characters", () => {
   const unicodeStrings = [
     "こんにちは", // Japanese for "Hello"
+    "ありがとうございます", // Japanese for "Thank you"
+    "東京タワー", // Tokyo Tower in Japanese
     "你好", // Chinese for "Hello"
     "안녕하세요", // Korean for "Hello"
+    "감사합니다", // Korean for "Thank you"
+    "서울역", // Seoul Station in Korean
     "Привет", // Russian for "Hello"
     "مرحبا", // Arabic for "Hello"
+    "שלום", // Hebrew for "Hello"
+    "תודה רבה", // Hebrew for "Thank you very much"
     "😀", // Emoji
     "🚀🌕", // Rocket and moon emoji
   ];
@@ -267,11 +273,17 @@ Deno.test("Encode and decode unicode characters", () => {
 // Decode URLs with Unicode characters
 Deno.test("Decode URLs with Unicode characters", () => {
   const unicodeUrls = [
-    // "https://example.com/こんにちは",
+    "https://example.com/こんにちは",
+    "https://example.com/ありがとうございます",
+    "https://example.com/東京タワー",
     "https://example.com/你好",
-    // "https://example.com/안녕하세요",
+    "https://example.com/안녕하세요",
+    "https://example.com/감사합니다",
+    "https://example.com/서울역",
     "https://example.com/Привет",
     "https://example.com/مرحبا",
+    "https://example.com/שלום",
+    "https://example.com/תודה-רבה",
     "https://example.com/😀",
     "https://example.com/🚀🌕",
   ];
