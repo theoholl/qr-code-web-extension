@@ -6,7 +6,7 @@ import {
   QRCodeReader,
 } from "@zxing/library";
 import qr from "../qr.ts";
-import { assertEquals, assertNotEquals, assertThrows } from "@std/assert";
+import { assertEquals, assertThrows } from "@std/assert";
 
 // Custom LuminanceSource that converts a boolean[][] into grayscale pixel data
 class BooleanLuminanceSource extends LuminanceSource {
