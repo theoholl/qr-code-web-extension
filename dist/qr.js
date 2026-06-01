@@ -506,7 +506,7 @@ const QRCode = (() => {
         }
         // Alignment patterns
         if (!v) {
-            throw "Invalid version";
+            throw new Error("Invalid version");
         }
         const aligns = v[2];
         const m = aligns.length;
@@ -713,7 +713,7 @@ const QRCode = (() => {
         const v = VERSIONS[ver];
         let buffer = encode(ver, data, nDataBits(ver, ecclevel) >> 3);
         if (!v) {
-            throw "Invalid version";
+            throw new Error("Invalid version");
         }
         buffer = augumentEccs(buffer, v[1][ecclevel], GF256_GENPOLY[v[0][ecclevel]]);
         const result = makeBaseMatrix(ver);
@@ -751,19 +751,22 @@ const QRCode = (() => {
                 H: 2,
             };
             const ecclevel = ECCLEVELS[eccLevel];
+            if (ecclevel === undefined) {
+                throw new Error("Invalid ECC level");
+            }
             const encoder = new TextEncoder();
             const utf8Encoded = Array.from(encoder.encode(data));
             let version = -1;
             if (version < 0) {
                 for (version = 1; version <= 40; ++version) {
-                    if (data.length <= getMaxDataLength(version, ecclevel))
+                    if (utf8Encoded.length <= getMaxDataLength(version, ecclevel))
                         break;
                 }
                 if (version > 40)
-                    throw "Input data is too large";
+                    throw new Error("Input data is too large");
             }
             else if (version < 1 || version > 40) {
-                throw "Invalid version";
+                throw new Error("Invalid version");
             }
             return generate(utf8Encoded, version, ecclevel);
         },
