@@ -62,29 +62,40 @@ class BooleanLuminanceSource extends LuminanceSource {
   }
 }
 
-Deno.test(function emptyString() {
-  const result = qr.generate("");
-  assertNotEquals(result, []);
+Deno.test("Encode an empty string", () => {
+  const qrCodeBinary = qr.generate("");
+
+  assertEquals(qrCodeBinary.length, 21);
+  assertEquals(qrCodeBinary[0].length, 21);
+
+  const qrCodeAsBooleanArray = qrCodeBinary.map((row) => row.map((pixel) => pixel === 0));
+  const luminanceSource = new BooleanLuminanceSource(qrCodeAsBooleanArray);
+  const binaryBitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
+  const reader = new QRCodeReader();
+
+  const result = reader.decode(binaryBitmap);
+  assertEquals(result.getText(), "");
 });
 
-Deno.test(function tooLongString() {
+Deno.test("Encode a too long string fails", () => {
   const randomString = "a".repeat(2954);
   assertThrows(() => qr.generate(randomString));
 });
 
-Deno.test(function invalidEccLevel() {
+Deno.test("Using invalid ECC levels fails", () => {
   assertThrows(() => qr.generate("test", "X" as "L"), Error, "Invalid ECC level");
 });
 
-Deno.test(function unicodeStringAtByteLimit() {
+Deno.test("Encoding unicode characters at byte limit", () => {
   const unicodeString = "😀".repeat(738);
 
   const result = qr.generate(unicodeString);
 
-  assertNotEquals(result, []);
+  assertEquals(result.length, 177);
+  assertEquals(result[0].length, 177);
 });
 
-Deno.test(function unicodeStringTooLongByByteLength() {
+Deno.test("Encoding a too long unicode string fails", () => {
   const unicodeString = "😀".repeat(739);
 
   assertThrows(() => qr.generate(unicodeString), Error, "Input data is too large");
@@ -107,13 +118,8 @@ Deno.test("Decode 'Hello, world!'", () => {
 
   // Initialize and use the QR code reader to decode the bitmap
   const reader = new QRCodeReader();
-  try {
-    const result = reader.decode(binaryBitmap);
-    assertEquals(result.getText(), "Hello, world!");
-  } catch (error) {
-    console.error("Failed to decode QR code:", error);
-    throw error; // Re-throw the error to fail the test
-  }
+  const result = reader.decode(binaryBitmap);
+  assertEquals(result.getText(), "Hello, world!");
 });
 
 Deno.test("Decode 1000 random strings", () => {
