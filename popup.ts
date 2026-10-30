@@ -1,5 +1,14 @@
 import QRCode from "./qr.js";
 
+const svgObjectUrls = new Set<string>();
+
+window.addEventListener("pagehide", () => {
+  for (const objectUrl of svgObjectUrls) {
+    URL.revokeObjectURL(objectUrl);
+  }
+  svgObjectUrls.clear();
+});
+
 async function initialize() {
   // Initialize the popup by setting the URL input, generating the QR code,
   // and attaching event listeners to the buttons.
@@ -306,6 +315,7 @@ function downloadQrCode() {
     const svgString = new XMLSerializer().serializeToString(newQrCode);
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     dataUrl = URL.createObjectURL(blob);
+    svgObjectUrls.add(dataUrl);
   }
 
   // Create a temporary anchor element to trigger the download.
