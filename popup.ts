@@ -1,6 +1,8 @@
 import QRCode from "./qr.js";
 
 const svgObjectUrls = new Set<string>();
+const qrCodeInputDebounceMs = 100;
+let qrCodeUpdateTimeout: number | undefined;
 
 window.addEventListener("pagehide", () => {
   for (const objectUrl of svgObjectUrls) {
@@ -38,15 +40,22 @@ async function getCurrentTabUrl() {
 }
 
 function handleInputUpdated() {
-  // Update the QR code on each input change.
+  // Debounce QR generation while the user is editing the URL.
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
-  updateQrCode(urlInput.value);
+  window.clearTimeout(qrCodeUpdateTimeout);
+  qrCodeUpdateTimeout = window.setTimeout(() => {
+    qrCodeUpdateTimeout = undefined;
+    updateQrCode(urlInput.value);
+  }, qrCodeInputDebounceMs);
 }
 
 async function handleInputBlur() {
   // If the user leaves the field empty, reset it to the current tab's URL.
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
   if (urlInput.value.trim()) return;
+
+  window.clearTimeout(qrCodeUpdateTimeout);
+  qrCodeUpdateTimeout = undefined;
 
   const tabUrl = await getCurrentTabUrl();
   urlInput.value = tabUrl;
