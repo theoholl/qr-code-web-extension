@@ -2,6 +2,8 @@ import QRCode from "./qr.js";
 
 const svgObjectUrls = new Set<string>();
 const qrCodeInputDebounceMs = 100;
+const moduleSize = 10; // Size of each QR code module (block).
+const quietZoneModules = 3; // Margin around the QR code, in modules; shared by PNG and SVG.
 let qrCodeUpdateTimeout: number | undefined;
 
 window.addEventListener("pagehide", () => {
@@ -40,7 +42,7 @@ async function getCurrentTabUrl() {
 }
 
 function handleInputUpdated() {
-  // Debounce QR generation while the user is editing the URL.
+  // Update the QR code on each input change.
   const urlInput = document.getElementById("url-input") as HTMLInputElement;
   window.clearTimeout(qrCodeUpdateTimeout);
   qrCodeUpdateTimeout = window.setTimeout(() => {
@@ -108,8 +110,7 @@ function generateSVG(data: string): SVGElement {
   // Generate an SVG representation of the QR code for the given data.
   const matrix = QRCode.generate(data); // Generate the QR code matrix.
   const n = matrix.length;
-  const moduleSize = 10; // Size of each QR code module (block).
-  const size = moduleSize * (n + 2); // Total size of the SVG.
+  const size = moduleSize * (n + 2 * quietZoneModules); // Total size of the SVG.
 
   // Create the root SVG element.
   const svgElement = createSvgElement("svg", {
@@ -128,23 +129,19 @@ function generateSVG(data: string): SVGElement {
   svgElement.appendChild(backgroundRect);
 
   // Add black rectangles for each "on" module in the QR code matrix.
-  let yOffset = moduleSize;
   for (let y = 0; y < n; ++y) {
-    let xOffset = moduleSize;
     for (let x = 0; x < n; ++x) {
       if (matrix[y][x]) {
         const rect = createSvgElement("rect", {
-          x: `${xOffset}`,
-          y: `${yOffset}`,
+          x: `${moduleSize * (quietZoneModules + x)}`,
+          y: `${moduleSize * (quietZoneModules + y)}`,
           width: `${moduleSize}`,
           height: `${moduleSize}`,
           fill: "black",
         });
         svgElement.appendChild(rect);
       }
-      xOffset += moduleSize;
     }
-    yOffset += moduleSize;
   }
 
   return svgElement;
@@ -167,8 +164,7 @@ function generatePNG(
 ): string {
   // Generate a PNG representation of the QR code for the given data.
   const modulesMatrix = QRCode.generate(data); // Generate the QR code matrix.
-  const moduleSize = 10; // Size of each QR code module (block).
-  const padding = 3; // Padding around the QR code.
+  const padding = quietZoneModules; // Padding around the QR code.
   const matrixSideLength = modulesMatrix.length;
 
   // Ratio of the resolution in physical pixels to the resolution in CSS pixels used for scaling the image
