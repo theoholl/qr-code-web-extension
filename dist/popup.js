@@ -215,22 +215,31 @@ function handleClickCloseWindowButton() {
     // Close the popup window when the close button is clicked.
     window.close();
 }
-function handleClickCopyUrlButton() {
+async function handleClickCopyUrlButton() {
     // Copy the URL from the input field to the clipboard and show a temporary checkmark.
     const urlInput = document.getElementById("url-input");
-    navigator.clipboard.writeText(urlInput.value);
+    const trimmedUrl = urlInput.value.trim();
+    if (!trimmedUrl)
+        return;
+    try {
+        await navigator.clipboard.writeText(trimmedUrl);
+    }
+    catch (error) {
+        console.error("Error copying URL:", error);
+        return;
+    }
     temporarilyShowCheckMark();
 }
-async function temporarilyShowCheckMark() {
+function temporarilyShowCheckMark() {
     // Temporarily replace the copy icon with a checkmark icon to indicate success.
     const copySymbolContainer = document.getElementById("copy-symbol-container");
     const doneSymbolContainer = document.getElementById("done-symbol-container");
     copySymbolContainer.classList.toggle("hidden", true);
     doneSymbolContainer.classList.toggle("hidden", false);
-    await new Promise(() => setTimeout(() => {
+    setTimeout(() => {
         copySymbolContainer.classList.toggle("hidden", false);
         doneSymbolContainer.classList.toggle("hidden", true);
-    }, 1000));
+    }, 1000);
 }
 function downloadQrCode() {
     // Download the QR code in the selected format (PNG or SVG).
